@@ -1,0 +1,12 @@
+{
+  "name": "civ7-weighted-yield-scores",
+  "version": "0.4.0-beta.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:steam": "bash tools/build-steam.sh",
+    "test": "npm run test:unit && npm run test:syntax && node tools/test-release.mjs",
+    "test:unit": "node tools/test-i18n.mjs && node tools/test-settings.mjs && node tools/test-scorer.mjs && node tools/test-food-valuation.mjs && node tools/test-happiness-valuation.mjs && node tools/test-runtime.mjs && node tools/test-population-details.mjs && node tools/test-recommendation.mjs && node tools/test-building-evaluator.mjs && node tools/test-building-details.mjs && node tools/test-building-list-name.mjs && node tools/test-building-list-score.mjs",
+    "test:syntax": "node --check ui/i18n.js && node --check ui/settings.js && node --check ui/options/weighted-yield-options.js && node --check ui/options/weighted-yield-settings-editor.js && node --check ui/config.js && node --check ui/scorer.js && node --check ui/food-valuation.js && node --check ui/happiness-valuation.js && node --check ui/runtime.js && node --check ui/population-details.js && node --check ui/recommendation.js && node --check ui/building-evaluator.js && node --check ui/building-details.js && node --check ui/building-list-name.js && node --check ui/building-list-score.js && node --check ui/patch-plot-workers.js && node --check ui/patch-worker-yields-layer.js && node --check ui/patch-place-population.js && node --check ui/patch-acquire-tile-recommendation.js && node --check ui/patch-building-placement.js && node --check ui/patch-production-chooser.js && node --check ui/main.js && node --check ui-next/tooltips/production-tooltip.js"
+  }
+}

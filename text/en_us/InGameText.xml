@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database>
+  <EnglishText>
+    <Row Tag="LOC_OPTIONS_GROUP_WYS_WEIGHTED_YIELD_SCORES">
+      <Text>Weighted Yield Scores</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_SETTINGS_ENTRY">
+      <Text>Weighted Yield Scores settings</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_SETTINGS_ENTRY_DESCRIPTION">
+      <Text>Changes the Food valuation method and each yield multiplier.</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_OPEN_SETTINGS">
+      <Text>Open settings</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_SETTINGS_TITLE">
+      <Text>Weighted Yield Scores settings</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_SETTINGS_DESCRIPTION">
+      <Text>Enter each multiplier directly. Changes are saved immediately.</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_FOOD_MODE">
+      <Text>Food valuation method</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_FOOD_MODE_DESCRIPTION">
+      <Text>Dynamic adjusts Food for each settlement; Fixed always uses the configured multiplier.</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_FOOD_DYNAMIC">
+      <Text>Dynamic</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_FOOD_FIXED">
+      <Text>Fixed</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_WEIGHT_DESCRIPTION">
+      <Text>Sets the Production-equivalent value of one point of this yield.</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_WEIGHT_FOOD">
+      <Text>Food multiplier (Fixed)</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_WEIGHT_PRODUCTION">
+      <Text>Production multiplier</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_WEIGHT_GOLD">
+      <Text>Gold multiplier</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_WEIGHT_SCIENCE">
+      <Text>Science multiplier</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_WEIGHT_CULTURE">
+      <Text>Culture multiplier</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_WEIGHT_HAPPINESS">
+      <Text>Happiness multiplier</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_WEIGHT_INFLUENCE">
+      <Text>Influence multiplier</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_INPUT_RANGE">
+      <Text>Input range: 0 to 3 (decimals are allowed)</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_INPUT_ERROR">
+      <Text>Enter a number from 0 to 3.</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_RESET_ONE">
+      <Text>Reset to default</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_RESET_ALL">
+      <Text>Reset all settings for this mod</Text>
+    </Row>
+    <Row Tag="LOC_OPTIONS_WYS_CLOSE_SETTINGS">
+      <Text>Close settings</Text>
+    </Row>
+  </EnglishText>
+</Database>

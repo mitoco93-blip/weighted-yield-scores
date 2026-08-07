@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Mod id="wys-weighted-yield-scores" version="79" xmlns="ModInfo">
+  <Properties>
+    <Name>Weighted Yield Scores</Name>
+    <Version>0.4.0-beta.1</Version>
+    <Description>Shows configurable production-equivalent scores for improvements, specialists and building choices.</Description>
+    <Authors>mitoco93-blip</Authors>
+    <Package>Mod</Package>
+    <AffectsSavedGames>0</AffectsSavedGames>
+  </Properties>
+
+  <Dependencies>
+    <Mod id="base-standard" title="LOC_MODULE_BASE_STANDARD_NAME" />
+  </Dependencies>
+
+  <ActionCriteria>
+    <Criteria id="always">
+      <AlwaysMet />
+    </Criteria>
+  </ActionCriteria>
+
+  <ActionGroups>
+    <ActionGroup id="wys-weighted-yield-scores-shell" scope="shell" criteria="always">
+      <Properties>
+        <LoadOrder>9000</LoadOrder>
+      </Properties>
+      <Actions>
+        <UpdateText>
+          <Item>text/en_us/InGameText.xml</Item>
+          <Item locale="ja_JP">text/ja_JP/InGameText.xml</Item>
+        </UpdateText>
+        <UIScripts>
+          <Item>ui/options/weighted-yield-options.js</Item>
+        </UIScripts>
+      </Actions>
+    </ActionGroup>
+
+    <ActionGroup id="wys-weighted-yield-scores-ui" scope="game" criteria="always">
+      <Properties>
+        <!-- Load late so the wrappers include other UI mods when they are present. -->
+        <LoadOrder>9000</LoadOrder>
+      </Properties>
+      <Actions>
+        <UpdateText>
+          <Item>text/en_us/InGameText.xml</Item>
+          <Item locale="ja_JP">text/ja_JP/InGameText.xml</Item>
+        </UpdateText>
+        <!-- Civ VII 1.4 and City Hall render building hovers through this
+             Solid tooltip rather than the legacy constructible-details card. -->
+        <ImportFiles>
+          <Item>ui-next/tooltips/production-tooltip.js</Item>
+        </ImportFiles>
+        <UIScripts>
+          <Item>ui/options/weighted-yield-options.js</Item>
+          <Item>ui/main.js</Item>
+        </UIScripts>
+      </Actions>
+    </ActionGroup>
+  </ActionGroups>
+</Mod>

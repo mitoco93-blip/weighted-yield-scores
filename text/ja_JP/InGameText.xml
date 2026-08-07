@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database>
+  <LocalizedText>
+    <Replace Tag="LOC_OPTIONS_GROUP_WYS_WEIGHTED_YIELD_SCORES" Language="ja_JP">
+      <Text>重み付き産出スコア</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_SETTINGS_ENTRY" Language="ja_JP">
+      <Text>重み付き産出スコアの設定</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_SETTINGS_ENTRY_DESCRIPTION" Language="ja_JP">
+      <Text>食料の評価方式と、各産出の倍率を変更します。</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_OPEN_SETTINGS" Language="ja_JP">
+      <Text>設定を開く</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_SETTINGS_TITLE" Language="ja_JP">
+      <Text>重み付き産出スコアの設定</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_SETTINGS_DESCRIPTION" Language="ja_JP">
+      <Text>各倍率を数値で直接入力できます。変更内容はすぐに保存されます。</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_FOOD_MODE" Language="ja_JP">
+      <Text>食料の評価方式</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_FOOD_MODE_DESCRIPTION" Language="ja_JP">
+      <Text>「動的」は居住地ごとに食料価値を調整し、「固定」は設定した倍率を常に使います。</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_FOOD_DYNAMIC" Language="ja_JP">
+      <Text>動的</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_FOOD_FIXED" Language="ja_JP">
+      <Text>固定</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_WEIGHT_DESCRIPTION" Language="ja_JP">
+      <Text>この産出1ポイントを、生産力換算でどれだけの価値として扱うかを設定します。</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_WEIGHT_FOOD" Language="ja_JP">
+      <Text>食料の固定倍率</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_WEIGHT_PRODUCTION" Language="ja_JP">
+      <Text>生産力の倍率</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_WEIGHT_GOLD" Language="ja_JP">
+      <Text>ゴールドの倍率</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_WEIGHT_SCIENCE" Language="ja_JP">
+      <Text>科学力の倍率</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_WEIGHT_CULTURE" Language="ja_JP">
+      <Text>文化力の倍率</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_WEIGHT_HAPPINESS" Language="ja_JP">
+      <Text>幸福度の倍率</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_WEIGHT_INFLUENCE" Language="ja_JP">
+      <Text>影響力の倍率</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_INPUT_RANGE" Language="ja_JP">
+      <Text>入力範囲：0～3（小数も入力できます）</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_INPUT_ERROR" Language="ja_JP">
+      <Text>0～3の数値を入力してください。</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_RESET_ONE" Language="ja_JP">
+      <Text>初期値に戻す</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_RESET_ALL" Language="ja_JP">
+      <Text>すべての設定を初期値に戻す</Text>
+    </Replace>
+    <Replace Tag="LOC_OPTIONS_WYS_CLOSE_SETTINGS" Language="ja_JP">
+      <Text>設定を閉じる</Text>
+    </Replace>
+  </LocalizedText>
+</Database>

@@ -1,0 +1,7 @@
+node_modules/
+coverage/
+*.log
+*.zip
+steam-upload/
+.DS_Store
+Thumbs.db
