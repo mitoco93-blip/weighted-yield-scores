@@ -73,7 +73,7 @@ If you would like to request another feature, please use [GitHub Issues](https:/
 
 ## Changelog
 
-### 0.4.0-beta.1 (release date TBD)
+### 0.4.0-beta.1 (2026-08-07)
 
 - Initial release
 
@@ -83,6 +83,4 @@ See the [technical notes](TECHNICAL_NOTES.md) for calculation methods and implem
 
 ## Steam Workshop
 
-Subscribe through Steam Workshop to install the mod.
-
-Steam Workshop URL will be added after publication.
+Subscribe through [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3779121419) to install the mod.
