@@ -71,7 +71,7 @@ Weighted Yield Scoresは、食料・生産力・ゴールドなどを単純に�
 
 ## 更新履歴
 
-### 0.4.0-beta.1（公開日未定）
+### 0.4.0-beta.1（2026-08-07）
 
 * 初回公開
 
@@ -81,6 +81,4 @@ Weighted Yield Scoresは、食料・生産力・ゴールドなどを単純に�
 
 ## Steam Workshop
 
-Steam Workshopからサブスクライブして導入できます。
-
-※Steam WorkshopのURLを公開後に追加
+[Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3779121419)からサブスクライブして導入できます。
