@@ -89,7 +89,7 @@ If there are other features you would like, please suggest them through [GitHub 
 
 ## Changelog
 
-### 0.4.0-beta.2 (Release date TBD)
+### 0.4.0-beta.2 (2026-09-18)
 
 #### Additions and Improvements
 
