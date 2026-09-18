@@ -1,86 +1,117 @@
 # Weighted Yield Scores
 
-[日本語](README_JA.md)
+Weighted Yield Scores is a UI mod for Civilization VII that lets you compare tile improvements, Specialist placements, and buildings using your own priorities for each yield, rather than simply adding Food, Production, Gold, and other yields together.
 
-Weighted Yield Scores is a UI mod that lets you assign a value to each yield and use those values to compare tile improvements, Specialist placements, and buildings instead of simply adding Food, Production, Gold, and other yields together.
+For example, instead of treating 2 Food and 2 Production as the same two points, the mod converts each into its assigned value and combines them into a single score. This is what the mod calls "weighting" yields.
 
-For example, rather than treating 2 Food and 2 Production as equally valuable just because both are “2,” the mod converts each yield using its configured value and combines the results into a single comparison score. In this mod, assigning different values to different yields is called “weighting.”
+You can change the value of each yield to help decide where to place Population and what to build where, based on your own preferences.
 
-You can freely change the value of each yield and use your own priorities when deciding where to assign Population and what to build where.
+Building evaluations account for more than the building's own yields. They also include yields lost at the construction site and the destination of Population displaced when a Rural improvement is replaced. This lets you compare the overall change to the settlement after construction.
 
-Building evaluations include not only the building's own yields, but also yields lost at the construction site and the best available reassignment for Population displaced when a Rural improvement is replaced. This allows buildings to be compared using the estimated change to the Settlement as a whole after construction.
+## Main Features
 
-## Features
+- Shows weighted values for Rural tiles and Specialist candidates when placing Population.
+- Highlights the highest-value Population placement in a City.
+- Lets you switch the building list between efficiency order (E order), weighted-value order (W order), and Default order.
+- Highlights the highest-value location for a building.
+- Accounts for adjacency bonuses, Warehouse effects, maintenance, and yields lost through overbuilding.
+- Shows a breakdown of yields and weights in tooltips.
 
-- Displays a weighted value for each Rural tile and Specialist placement option when assigning Population
-- Highlights the most valuable Population placement option in the City
-- Sorts the building list by efficiency, taking both yield value and Production cost into account
-- Highlights the most valuable placement option for each building
-- Includes adjacency bonuses, Warehouse effects, maintenance costs, and yields lost through replacement
-- Displays a breakdown of each yield and multiplier in tooltips
+## Reading and Sorting the Building List
 
-## Default valuation rates
+Each building name is followed by its weighted value, **W**, and efficiency, **E**.
 
-By default, the following amounts are treated as equally valuable:
+- **W (Weighted Value)**: The change in yields converted using your configured weights. This also accounts for maintenance and Population reassignment when a Rural improvement is replaced.
+- **E (Efficiency)**: W divided by the Production required to build, multiplied by 10,000.
+
+Use the buttons in the list header to switch the sorting mode. Your selection is saved.
+
+| Sorting Mode | Behavior |
+| --- | --- |
+| E order (initial setting) | Highest efficiency first |
+| W order | Highest weighted value first |
+| Default | Disables this mod's sorting and restores the order provided by the game or another mod |
+
+To save space, the Ageless label on Warehouse buildings and other Ageless buildings is displayed as an icon.
+
+## Default Valuation Rates
+
+By default, the following amounts are treated as equal in value:
 
 1 Influence = 2 Production = 4 Science = 4 Culture = 7 Gold = 10 Happiness
 
-Food does not use a fixed multiplier by default. Its value is calculated dynamically for each Settlement using factors such as Population and the Food remaining until growth.
+Food uses a dynamic value by default, rather than a fixed weight. Its value is calculated for each settlement based on factors such as Population and the Food remaining until growth.
 
-The approximate reference values at Standard game speed are shown below. Population is the combined total of Rural Population and Specialists.
+The following table gives approximate reference values at Standard speed. Population here means Rural Population plus Specialists.
 
 | Population | Antiquity | Exploration | Modern |
-| ---: | ---: | ---: | ---: |
+| --- | --- | --- | --- |
 | 2 | 2.27 | 1.43 | 1.04 |
 | 6 | 1.08 | 0.76 | 0.57 |
 | 10 | 0.72 | 0.53 | 0.41 |
 
-When a Settlement has negative Happiness, the evaluation also accounts for the non-Food yield penalties that would be reduced by restoring Happiness. Any Happiness above zero is evaluated using only the standard multiplier.
+In settlements with negative Happiness, the evaluation also includes the reduction in non-Food yield penalties gained by restoring Happiness. Happiness above zero is evaluated using only its normal weight.
 
-For improvement options in Towns, the evaluation reflects the conversion of Production into Gold by valuing 1 Production with the same multiplier as 1 Gold.
+For improvement candidates in Towns, 1 Production is valued at the same weight as 1 Gold, reflecting the conversion of Production into Gold.
 
-Yield multipliers can be changed under **Options → Add-ons → Weighted Yield Scores Settings**.
+You can change yield weights under **Options → Add-ons → Weighted Yield Scores settings**.
 
-## Acquiring resource tiles
+## Acquiring Resource Tiles
 
-For resources that can be assigned to slots, the mod calculates the yield provided while the resource is unassigned.
+Resources that can be assigned to slots are evaluated using the yields they provide while unassigned.
 
-Other resource effects are not included in the evaluation.
+Other resources are not included in the resource valuation.
 
-As a result, resource tiles will generally be valued lower than their full practical value.
+This generally results in a lower estimate than their actual value.
 
-Improved resource evaluation is being considered for a future update.
+Improvements to resource valuation are being considered for future updates.
 
 ## Compatibility
 
-- UI-only; does not modify save data
-- Can be enabled or disabled in existing save games
-- Supports English and Japanese
-- Compatibility with other UI mods has not yet been tested; verification and adjustments are planned
+- This is a UI mod that does not modify save data.
+- It can be enabled or disabled for existing saves.
+- English and Japanese are supported.
+- The production list display has been checked and adjusted in four configurations: this mod alone, with City Hall, with F1rstdan’s Cool UI, and with both.
 
-## Beta and bug reports
+Compatibility with other UI mods has not been verified.
 
-This mod is currently in beta. If you find a calculation or display issue, please report it through [GitHub Issues](https://github.com/mitoco93-blip/weighted-yield-scores/issues).
+## Beta and Bug Reports
 
-## Planned features
+This mod is currently in beta. Please report calculation or display problems through [GitHub Issues](https://github.com/mitoco93-blip/weighted-yield-scores/issues).
 
-- Options to switch the building list between efficiency order and weighted-value order, disable sorting, and restore the game's original order
-- More precise evaluation of acquired resource tiles
-- Compatibility with additional UI mods
-- Support for more special effects and placement conditions
+## Features Under Consideration
 
-If you would like to request another feature, please use [GitHub Issues](https://github.com/mitoco93-blip/weighted-yield-scores/issues). Features with strong demand will be prioritized when they are feasible.
+- More precise valuation when acquiring resource tiles.
+- Compatibility with additional UI mods.
+- Support for more special effects and placement conditions.
+
+If there are other features you would like, please suggest them through [GitHub Issues](https://github.com/mitoco93-blip/weighted-yield-scores/issues). Frequently requested, feasible improvements will be prioritized.
 
 ## Changelog
 
+### 0.4.0-beta.2 (Release date TBD)
+
+#### Additions and Improvements
+
+- Added E order, W order, and Default sorting modes to the building list.
+- Improved the production list display when used with City Hall and Cool UI.
+- Made yield icons and values more compact and adjusted the placement of Production costs and turns remaining.
+- Replaced the Ageless label with the game's official icon and a tooltip.
+
+#### Bug Fixes
+
+- Fixed tile scores not appearing until hovered over when Population increases through a Migrant.
+- Fixed scores and recommendations appearing on tiles that cannot receive reassigned Population.
+- Fixed incorrect evaluations when multiple buildings were eligible for overbuilding, caused by including the yields and maintenance of buildings that would remain.
+
 ### 0.4.0-beta.1 (2026-08-07)
 
-- Initial release
+- Initial release.
 
-## Technical details
+## Detailed Specifications
 
-See the [technical notes](TECHNICAL_NOTES.md) for calculation methods and implementation details.
+See the [technical notes](TECHNICAL_NOTES.md) for calculation methods and other details.
 
 ## Steam Workshop
 
-Subscribe through [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3779121419) to install the mod.
+Subscribe through the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3779121419) to install the mod.
