@@ -49,18 +49,19 @@ function getRecommendationGroup(handler) {
 
 function candidateScores(handler) {
   const city = globalThis.Cities?.get?.(handler?.cityID);
-  if (!city) return [];
+  if (!city || !WeightedYieldRuntime.isForCity(handler.cityID)) return [];
 
-  const improvementPlotIndexes = new Set([
-    ...(handler.validPlots ?? []),
-    ...WeightedYieldRuntime.state.improvementScores.keys(),
-  ]);
+  // The same list is used by the game to accept tile selection. Do not union
+  // it with the runtime cache, which also serves hypothetical building costs.
+  const improvementPlotIndexes = new Set(handler.validPlots ?? []);
   const improvements = Array.from(improvementPlotIndexes).map((plotIndex) => ({
     plotIndex,
-    scored: WeightedYieldRuntime.getImprovementScore(plotIndex),
+    scored: WeightedYieldRuntime.getPlacementImprovementScore(handler.cityID, plotIndex, handler.validPlots),
   }));
 
-  if (city.isTown) return mergeRecommendationCandidates(improvements);
+  if (city.isTown || !WeightedYieldRuntime.isForCity(PlotWorkersManager.cityID)) {
+    return mergeRecommendationCandidates(improvements);
+  }
 
   const specialists = (PlotWorkersManager.workablePlotIndexes ?? []).map(
     (plotIndex) => ({

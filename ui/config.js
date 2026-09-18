@@ -2,7 +2,7 @@ import { WeightedYieldSettings } from "./settings.js";
 
 /** Shared runtime configuration for Weighted Yield Scores. */
 export const WeightedYieldConfig = {
-  version: "0.4.0-beta.1",
+  version: "0.4.0-beta.2",
   baselineYieldType: "YIELD_PRODUCTION",
 
   // A town converts Production into Gold. Keep the common production-
@@ -148,3 +148,4 @@ export const WeightedYieldConfig = {
   // Logs only warnings that help diagnose UI changes after a game update.
   diagnostics: true,
 };
+

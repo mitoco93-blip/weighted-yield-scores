@@ -3,7 +3,6 @@ import {
   calculateBuildingPriority,
   displacesRuralPopulation,
   evaluateBuildingPlacement,
-  getMissedBuildingOverbuildRecord,
   getPlotAdjacencyYieldRecord,
   getPlacementYieldRecord,
   getOverwrittenConstructedImprovement,
@@ -393,8 +392,7 @@ globalThis.GameInfo.Constructible_YieldChanges.push(
 );
 globalThis.Districts.getAtLocation = () => ({
   type: 2,
-  // Medieval Walls are deliberately absent: the game reports only buildings
-  // that the Rail Station will actually remove.
+  // These are eligible candidates, not a list of buildings actually removed.
   getOverbuildableConstructibleTypes: () => [
     temple.$hash,
     university.$hash,
@@ -421,24 +419,9 @@ const twoBuildingCity = {
 const twoBuildingPlacement = {
   plotID: 44,
   overbuiltConstructibleID: temple.$index,
-  // The engine removes the Temple, but misses the University.
+  // The engine selects the Temple. The University must remain untouched.
   yieldChanges: [0, 9, 13, 1, 1, -6, 0],
 };
-assert.deepEqual(
-  getMissedBuildingOverbuildRecord(
-    twoBuildingCity,
-    twoBuildingPlacement,
-  ),
-  {
-    YIELD_FOOD: 0,
-    YIELD_PRODUCTION: 0,
-    YIELD_GOLD: 3,
-    YIELD_SCIENCE: -8,
-    YIELD_CULTURE: 0,
-    YIELD_HAPPINESS: 3,
-    YIELD_DIPLOMACY: 0,
-  },
-);
 const railStationOverUniversityAndTemple = evaluateBuildingPlacement({
   city: twoBuildingCity,
   constructible: {
@@ -459,31 +442,16 @@ assert.deepEqual(
     YIELD_DIPLOMACY: 0,
   },
 );
-assert.deepEqual(
-  railStationOverUniversityAndTemple.missedBuildingOverbuildRecord,
-  {
-    YIELD_FOOD: 0,
-    YIELD_PRODUCTION: 0,
-    YIELD_GOLD: 3,
-    YIELD_SCIENCE: -8,
-    YIELD_CULTURE: 0,
-    YIELD_HAPPINESS: 3,
-    YIELD_DIPLOMACY: 0,
-  },
-);
-assert.deepEqual(railStationOverUniversityAndTemple.buildingRecord, {
-  YIELD_FOOD: 0,
-  YIELD_PRODUCTION: 9,
-  YIELD_GOLD: 19,
-  YIELD_SCIENCE: -7,
-  YIELD_CULTURE: 1,
-  YIELD_HAPPINESS: -7,
-  YIELD_DIPLOMACY: 0,
-});
-assert.ok(
-  Math.abs(railStationOverUniversityAndTemple.score - 10.028571428571428) <
-    1e-9,
-);
+assert.deepEqual(railStationOverUniversityAndTemple.buildingRecord,
+  railStationOverUniversityAndTemple.enginePlacementRecord,
+  "Only the selected building may be deducted");
+const originalRecord = railStationOverUniversityAndTemple.buildingRecord;
+globalThis.Districts.getAtLocation = () => ({type: 2,
+  getOverbuildableConstructibleTypes: () => [university.$hash, temple.$hash, university.$hash]});
+assert.deepEqual(evaluateBuildingPlacement({city: twoBuildingCity,
+  constructible: {ConstructibleType: "BUILDING_RAIL_STATION", ConstructibleClass: "BUILDING"},
+  placement: twoBuildingPlacement}).buildingRecord, originalRecord,
+  "Candidate ordering and duplicates must not change the actual loss");
 
 globalThis.YieldSourceTypes = { ADJACENCY: 1 };
 globalThis.MapPlotYields = {

@@ -125,7 +125,9 @@ assert.equal(
   name,
   "the score must sit inline inside the native name element",
 );
-assert.equal(score.style.display, "inline-flex");
+assert.equal(score.style.display, "block");
+assert.ok(score.hasAttribute("cohinline"));
+assert.equal(score.style.fontSize, "0.8em");
 assert.equal(score.style.whiteSpace, "nowrap");
 assert.equal(score.style.flexShrink, "0");
 assert.equal(score.style.marginLeft, "0.4rem");
@@ -134,10 +136,10 @@ assert.match(score.className, /\bfont-body\b/);
 const weighted = score.querySelector('[data-wys-score-part="weighted"]');
 const efficiency = score.querySelector('[data-wys-score-part="efficiency"]');
 assert.equal(weighted.textContent, "W4.63");
-assert.equal(weighted.style.fontSize, "0.8em");
+assert.equal(weighted.style.fontSize, "inherit");
 assert.equal(weighted.style.fontWeight, "400");
 assert.equal(efficiency.textContent, "E114");
-assert.equal(efficiency.style.fontSize, "0.8em");
+assert.equal(efficiency.style.fontSize, "inherit");
 assert.equal(efficiency.style.fontWeight, "700");
 assert.equal(
   weighted.style.fontSize,

@@ -134,81 +134,17 @@ function negativeYieldRecord(record) {
   return result;
 }
 
-function sameConstructible(a, b) {
-  if (!a || !b) return false;
-  return Boolean(
-    (a.ConstructibleType && a.ConstructibleType === b.ConstructibleType) ||
-    (a.$hash != null && a.$hash === b.$hash) ||
-    (a.$index != null && a.$index === b.$index),
-  );
-}
-
-export function getMissedBuildingOverbuildRecord(city, placement) {
-  const previous = resolveConstructible(
-    placement?.overbuiltConstructibleID,
-  );
-  const location = globalThis.GameplayMap?.getLocationFromIndex?.(
-    placement?.plotID,
-  );
-  const district = location
-    ? globalThis.Districts?.getAtLocation?.(location)
-    : null;
-  if (
-    previous?.ConstructibleClass !== "BUILDING" ||
-    typeof district?.getOverbuildableConstructibleTypes !== "function"
-  ) {
-    return {};
-  }
-
-  let rawTypes = [];
-  try {
-    rawTypes = Array.from(
-      district.getOverbuildableConstructibleTypes() ?? [],
-    );
-  } catch {
-    return {};
-  }
-
-  const overbuildable = [];
-  for (const rawType of rawTypes) {
-    const definition = resolveConstructible(rawType);
-    if (
-      definition?.ConstructibleClass !== "BUILDING" ||
-      overbuildable.some((entry) => sameConstructible(entry, definition))
-    ) {
-      continue;
+// Placement snapshots use collection indexes. Live constructible instances use
+// type hashes instead; do not resolve an index through the hash/array fallback.
+function getOverbuiltConstructible(placement) {
+  const index = placement?.overbuiltConstructibleID;
+  if (index == null || Number(index) === -1) return null;
+  for (const definition of globalThis.GameInfo?.Constructibles ?? []) {
+    if (definition?.$index != null && Number(definition.$index) === Number(index)) {
+      return definition;
     }
-    overbuildable.push(definition);
   }
-
-  // Only correct the engine delta when its selected building is present in the
-  // authoritative overbuildable list. If the APIs ever disagree after a game
-  // update, keeping the engine result is safer than subtracting every building.
-  if (!overbuildable.some((entry) => sameConstructible(entry, previous))) {
-    return {};
-  }
-
-  let correction = {};
-  for (const definition of overbuildable) {
-    if (sameConstructible(definition, previous)) continue;
-
-    correction = addYieldRecords(
-      correction,
-      negativeYieldRecord(
-        getConstructibleStaticYieldRecord(definition),
-      ),
-    );
-    const maintenance = city?.Constructibles?.getMaintenance?.(
-      definition.ConstructibleType,
-    ) ?? [];
-    correction = addYieldRecords(
-      correction,
-      arrayToYieldRecord(
-        Array.from(maintenance, numberOrZero),
-      ),
-    );
-  }
-  return correction;
+  return null;
 }
 
 export function getPlotAdjacencyYieldRecord(plotIndex) {
@@ -259,9 +195,7 @@ function getImprovementReplacementCorrection(
 }
 
 export function getOverwrittenConstructedImprovement(placement) {
-  const snapshotImprovement = resolveConstructible(
-    placement?.overbuiltConstructibleID,
-  );
+  const snapshotImprovement = getOverbuiltConstructible(placement);
   if (isConstructedImprovement(snapshotImprovement)) {
     return snapshotImprovement;
   }
@@ -271,9 +205,7 @@ export function getOverwrittenConstructedImprovement(placement) {
 }
 
 export function isRuralReplacement(placement) {
-  const previous = resolveConstructible(
-    placement?.overbuiltConstructibleID,
-  );
+  const previous = getOverbuiltConstructible(placement);
   if (previous?.ConstructibleClass === "IMPROVEMENT") return true;
   if (getImprovementAtPlot(placement?.plotID)) return true;
   // The placement snapshot does not always retain overbuiltConstructibleID
@@ -303,9 +235,7 @@ export function getPlacementYieldRecord(city, constructible, placement) {
   // worker changes. Maintenance is applied by the base UI separately, so do
   // the same here before weighting the result.
   if (cityConstructibles) {
-    const previous = resolveConstructible(
-      placement?.overbuiltConstructibleID,
-    );
+    const previous = getOverbuiltConstructible(placement);
     if (previous) {
       const maintenance = cityConstructibles.getMaintenance?.(
         previous.ConstructibleType,
@@ -378,16 +308,11 @@ export function evaluateBuildingPlacement({
       )
       : getPlotYieldRecord(placement.plotID)
     : null;
-  const missedBuildingOverbuildRecord =
-    !isRepairing && constructible?.ConstructibleClass === "BUILDING"
-      ? getMissedBuildingOverbuildRecord(city, placement)
-      : {};
+  // The engine delta already accounts for the selected overbuild target.
+  // Other overbuildable buildings are alternatives, not additional removals.
   const buildingRecord = addYieldRecords(
-    addYieldRecords(
-      enginePlacementRecord,
-      negativeYieldRecord(overwrittenImprovementRecord),
-    ),
-    missedBuildingOverbuildRecord,
+    enginePlacementRecord,
+    negativeYieldRecord(overwrittenImprovementRecord),
   );
   const ruralReplacement =
     !isRepairing &&
@@ -431,7 +356,6 @@ export function evaluateBuildingPlacement({
     buildingRecord,
     overwrittenImprovement,
     overwrittenImprovementRecord,
-    missedBuildingOverbuildRecord,
     correctedRecord,
     buildingScore: buildingScored.score,
     buildingBaseScore: buildingScored.baseScore,

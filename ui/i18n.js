@@ -1,5 +1,12 @@
 const TRANSLATIONS = {
   en: {
+    sortBuildings: "Building order",
+    sortEfficiency: "E order",
+    sortWeighted: "W order",
+    sortDefault: "Default",
+    sortEfficiencyHint: "Highest efficiency (E) first",
+    sortWeightedHint: "Highest weighted value (W) first",
+    sortDefaultHint: "Restore the original order; keep scores and yield corrections",
     approximate: "approx. ",
     buildingEvaluation: "Building Evaluation",
     efficiencyHeading: "[B]Efficiency (E)[/B]",
@@ -26,6 +33,13 @@ const TRANSLATIONS = {
     yieldPenalty: "Yield penalty: {before} → {after} ({change})",
   },
   ja: {
+    sortBuildings: "建物の並び順",
+    sortEfficiency: "E順",
+    sortWeighted: "W順",
+    sortDefault: "デフォルト",
+    sortEfficiencyHint: "効率（E）の高い順",
+    sortWeightedHint: "重み付き価値（W）の高い順",
+    sortDefaultHint: "元の並び順に戻す。スコア表示・産出補正は維持",
     approximate: "約",
     buildingEvaluation: "建造物評価",
     efficiencyHeading: "[B]【効率（E）】[/B]",

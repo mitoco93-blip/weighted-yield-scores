@@ -1,3 +1,4 @@
+import { InterfaceMode } from "/core/ui/interface-modes/interface-modes.js";
 import LensManager from "/core/ui/lenses/lens-manager.js";
 import PlotWorkersManager from "/base-standard/ui/plot-workers/plot-workers-manager.js";
 import { WeightedYieldConfig } from "./config.js";
@@ -11,6 +12,25 @@ const LAYER_NAME = "fxs-worker-yields-layer";
 const FUNCTION_PATCH_FLAG = "__wysMapBadgePatchVersion";
 const diagnosticKeys = new Set();
 let improvementRedrawSequence = 0;
+const drawnImprovements = new WeakMap();
+function drawnPlots(layer) {
+  if (!drawnImprovements.has(layer)) drawnImprovements.set(layer, new Set());
+  return drawnImprovements.get(layer);
+}
+function placementHandler() {
+  const mode = "INTERFACEMODE_ACQUIRE_TILE";
+  return InterfaceMode.getCurrent() === mode ? InterfaceMode.getInterfaceModeHandler(mode) : null;
+}
+function displayPlots() {
+  const handler = placementHandler();
+  return handler && WeightedYieldRuntime.isForCity(handler.cityID) ? handler.validPlots ?? [] : [];
+}
+function redrawImprovementPlots(layer) {
+  // Also revisit our previous badges so a newly invalid plot is cleared even
+  // when the native growth-domain pass no longer visits it.
+  const plots = new Set([...drawnPlots(layer), ...displayPlots()]);
+  for (const plot of plots) layer.updatePlot?.(plot);
+}
 
 const diagnostic = (message, error = undefined) => {
   if (!WeightedYieldConfig.diagnostics) return;
@@ -258,11 +278,15 @@ function drawSpecialistBadge(layer, info) {
 function drawImprovementBadge(layer, plotIndex) {
   if (!WeightedYieldConfig.display.showMapScores) return;
 
-  const scored = WeightedYieldRuntime.getImprovementScore(plotIndex);
+  const handler = placementHandler();
+  if (!handler) return;
+  const scored = WeightedYieldRuntime.getPlacementImprovementScore(
+    handler.cityID, plotIndex, handler.validPlots,
+  );
   if (!scored) return;
 
   const configured = WeightedYieldConfig.display.improvementPosition;
-  drawBadge(
+  const drawn = drawBadge(
     layer,
     plotIndex,
     scored.score,
@@ -279,6 +303,7 @@ function drawImprovementBadge(layer, plotIndex) {
     },
     WeightedYieldConfig.display.weightedMapFontSize,
   );
+  if (drawn) drawnPlots(layer).add(plotIndex);
 }
 
 function wrapAfter(layer, methodName, after) {
@@ -287,8 +312,18 @@ function wrapAfter(layer, methodName, after) {
   if (current[FUNCTION_PATCH_FLAG] === WeightedYieldConfig.version) return true;
 
   const wrapped = function (...args) {
+    const hadBadge = methodName === "updatePlot" && drawnPlots(this).delete(args[0]);
+    if (hadBadge) {
+      // Clear only plots on which this mod previously drew an improvement
+      // badge, then let the original layer rebuild its own decoration.
+      this.yieldVisualizer?.clearPlot?.(args[0]);
+    }
     const result = current.apply(this, args);
     try {
+      if (hadBadge && !displayPlots().includes(args[0])) {
+        const workerInfo = PlotWorkersManager.allWorkerPlots?.find(info => info.PlotIndex === args[0]);
+        if (workerInfo) this.updateSpecialistPlot?.(workerInfo);
+      }
       after(this, ...args);
     } catch (error) {
       diagnostic(`${methodName} map badge hook failed.`, error);
@@ -309,9 +344,7 @@ function wrapGrowthRefresh(layer) {
   const wrapped = function (...args) {
     const result = current.apply(this, args);
     try {
-      for (const plotIndex of WeightedYieldRuntime.state.improvementScores.keys()) {
-        this.updatePlot?.(plotIndex);
-      }
+      redrawImprovementPlots(this);
     } catch (error) {
       diagnostic("Growth candidate score refresh failed.", error);
     }
@@ -340,6 +373,10 @@ function ensureLayerPatched() {
     (activeLayer, plotIndex) => drawImprovementBadge(activeLayer, plotIndex),
   );
   wrapGrowthRefresh(layer);
+  wrapAfter(layer, "removeLayer", activeLayer => {
+    drawnPlots(activeLayer).clear();
+    improvementRedrawSequence += 1;
+  });
 
   if (!specialistPatched) {
     diagnostic("worker-yields-layer.updateSpecialistPlot was not found.");
@@ -354,7 +391,7 @@ function redrawCachedImprovementScores(realizeAllGrowthPlots = false) {
   const layer = ensureLayerPatched();
   if (!layer) return;
 
-  if (realizeAllGrowthPlots && typeof layer.realizeGrowthPlots === "function") {
+  if (placementHandler() && realizeAllGrowthPlots && typeof layer.realizeGrowthPlots === "function") {
     diagnosticOnce(
       "improvement-full-realize",
       "Improvement candidates received a delayed full growth-plot redraw.",
@@ -363,14 +400,15 @@ function redrawCachedImprovementScores(realizeAllGrowthPlots = false) {
     return;
   }
 
-  for (const plotIndex of WeightedYieldRuntime.state.improvementScores.keys()) {
-    layer.updatePlot?.(plotIndex);
-  }
+  redrawImprovementPlots(layer);
 }
 
 function scheduleImprovementRedraw(reason) {
   if (reason === "hover") {
-    globalThis.setTimeout?.(() => redrawCachedImprovementScores(), 0);
+    const sequence = improvementRedrawSequence;
+    globalThis.setTimeout?.(() => {
+      if (sequence === improvementRedrawSequence) redrawCachedImprovementScores();
+    }, 0);
     return;
   }
 

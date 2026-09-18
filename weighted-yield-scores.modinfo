@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="wys-weighted-yield-scores" version="79" xmlns="ModInfo">
+<Mod id="wys-weighted-yield-scores" version="94" xmlns="ModInfo">
   <Properties>
     <Name>Weighted Yield Scores</Name>
-    <Version>0.4.0-beta.1</Version>
-    <Description>Shows configurable production-equivalent scores for improvements, specialists and building choices.</Description>
+    <Version>0.4.0-beta.2</Version>
+    <Description>Version: 0.4.0-beta.2. Shows configurable production-equivalent scores for improvements, specialists and building choices.</Description>
     <Authors>mitoco93-blip</Authors>
     <Package>Mod</Package>
     <AffectsSavedGames>0</AffectsSavedGames>
@@ -58,3 +58,4 @@
     </ActionGroup>
   </ActionGroups>
 </Mod>
+

@@ -1,5 +1,6 @@
 import { getBuildingListScoreParts } from "./building-details.js";
 import { t } from "./i18n.js";
+import { arrangeProductionRow } from "./production-row-layout.js";
 
 const SCORE_SELECTOR = "[data-wys-building-list-score]";
 const WEIGHTED_SELECTOR = '[data-wys-score-part="weighted"]';
@@ -16,35 +17,41 @@ function findBuildingNameElement(row) {
 
 function applyWrapperStyle(element) {
   element.className = "wys-building-list-score font-body";
-  element.style.display = "inline-flex";
-  element.style.alignItems = "baseline";
+  element.style.display = "block";
+  // Cohtml needs p[cohinline] to lay out regular and bold runs on one baseline.
+  // Use the game's numeric font order (also used by unit flags / age scores).
+  // W/E are ASCII: do not switch to locale-specific body faces for these runs.
+  element.style.fontFamily = '"BodyFont", "BodyFont-JP", "BodyFont-KR", "BodyFont-SC", "BodyFont-TC"';
+  element.style.fontSize = "0.8em";
   element.style.flexShrink = "0";
   element.style.whiteSpace = "nowrap";
-  element.style.lineHeight = "1";
+  element.style.lineHeight = "1.25";
+  element.style.margin = "0";
   element.style.marginLeft = "0.4rem";
   element.style.textTransform = "none";
 }
 
 function applyWeightedStyle(element) {
-  element.style.fontSize = "0.8em";
+  element.style.fontSize = "inherit";
   element.style.color = "rgba(205, 205, 200, 0.72)";
   element.style.fontWeight = "400";
 }
 
 function applySeparatorStyle(element) {
-  element.style.fontSize = "0.8em";
+  element.style.fontSize = "inherit";
   element.style.color = "rgba(205, 205, 200, 0.62)";
   element.style.fontWeight = "400";
 }
 
 function applyEfficiencyStyle(element) {
-  element.style.fontSize = "0.8em";
+  element.style.fontSize = "inherit";
   element.style.color = "rgb(222, 191, 112)";
   element.style.fontWeight = "700";
 }
 
 function createScoreElement(documentObject) {
-  const wrapper = documentObject.createElement("span");
+  const wrapper = documentObject.createElement("p");
+  wrapper.setAttribute("cohinline", "");
   wrapper.setAttribute("data-wys-building-list-score", "");
   applyWrapperStyle(wrapper);
 
@@ -54,7 +61,7 @@ function createScoreElement(documentObject) {
 
   const separator = documentObject.createElement("span");
   separator.setAttribute("aria-hidden", "true");
-  separator.textContent = "｜";
+  separator.textContent = " | ";
   applySeparatorStyle(separator);
 
   const efficiency = documentObject.createElement("span");
@@ -79,7 +86,8 @@ export function renderBuildingListScore(
     return false;
   }
 
-  const nameElement = findBuildingNameElement(row);
+  const layout = arrangeProductionRow(row, documentObject);
+  const nameElement = layout?.name ?? findBuildingNameElement(row);
   if (!nameElement?.parentElement) return false;
 
   const parts = getBuildingListScoreParts(evaluation);
@@ -91,8 +99,12 @@ export function renderBuildingListScore(
   let scoreElement = row.querySelector?.(SCORE_SELECTOR);
   if (!scoreElement) scoreElement = createScoreElement(documentObject);
 
-  if (scoreElement.parentElement !== nameElement) {
-    nameElement.append?.(scoreElement);
+  // A sibling of the localized name stays on the title row in City Hall and
+  // survives the game's name updates without creating a third line.
+  const scoreParent = layout?.header ?? nameElement;
+  if (scoreElement.parentElement !== scoreParent) {
+    if (layout) scoreParent.insertBefore(scoreElement, layout.scoreAnchor);
+    else scoreParent.append?.(scoreElement);
   }
 
   const weighted = scoreElement.querySelector?.(WEIGHTED_SELECTOR);
@@ -110,3 +122,5 @@ export function renderBuildingListScore(
   );
   return true;
 }
+
+

@@ -8,7 +8,12 @@ import {
   renderBuildingListScore,
 } from "./building-list-score.js";
 import { applyFixedBuildingListName } from "./building-list-name.js";
+import { correctedYieldDetailsHTML } from "./production-yields.js";
+import { updateProductionRowCosts } from "./production-row-layout.js";
 import { WeightedYieldConfig } from "./config.js";
+import { BUILDING_SORT_MODE, WeightedYieldSettings } from "./settings.js";
+import { sortBuildingItems } from "./building-list-sort.js";
+import { ensureBuildingSortControls } from "./building-sort-controls.js";
 import { WeightedYieldRuntime } from "./runtime.js";
 import {
   calculateBuildingPriority,
@@ -85,29 +90,16 @@ function scoreItem(city, item, allPlacementData, populationCandidates, isPurchas
   };
 }
 
-function correctedYieldDetailsHTML(evaluation) {
-  const record = evaluation?.correctedRecord ?? {};
-  const parts = [];
-  for (const yieldDefinition of globalThis.GameInfo?.Yields ?? []) {
-    const yieldType = yieldDefinition?.YieldType;
-    if (!yieldType) continue;
-    const value = Number(record[yieldType] ?? 0);
-    if (!Number.isFinite(value) || Math.abs(value) < 1e-9) continue;
-    const localized = globalThis.Locale?.stylize?.(
-      "LOC_BUILDING_PLACEMENT_YIELD_ICON_ONLY",
-      value,
-      yieldType,
-    ) ?? `${value}`;
-    const colorClass = value < 0 ? " text-negative font-bold" : "";
-    parts.push(
-      `<span class="flex items-center mr-1${colorClass}">${localized}</span>`,
-    );
-  }
-  return parts.join("");
-}
-
 function decorateAndSortItems(screen, value) {
-  const buildings = value?.buildings;
+  // Preserve the incoming bundle and order for native/third-party callers.
+  // Re-sorting a rendered bundle must also preserve its first original index.
+  const sourceBuildings = value?.buildings;
+  const buildings = Array.isArray(sourceBuildings)
+    ? sourceBuildings.map((item, index) => ({
+      ...item,
+      wysOriginalIndex: Number.isFinite(item.wysOriginalIndex) ? item.wysOriginalIndex : index,
+    }))
+    : sourceBuildings;
   const city = screen?.city;
   if (!city || !Array.isArray(buildings)) return value;
 
@@ -125,7 +117,6 @@ function decorateAndSortItems(screen, value) {
   let incompleteRuralCount = 0;
   for (let index = 0; index < buildings.length; index += 1) {
     const item = buildings[index];
-    item.wysOriginalIndex = index;
     item.wysBuildingEvaluation = undefined;
     item.wysBuildingPriority = undefined;
     const evaluation = scoreItem(
@@ -164,20 +155,11 @@ function decorateAndSortItems(screen, value) {
       `purchase=${Boolean(screen.isPurchase)}).`,
   );
 
-  if (WeightedYieldConfig.buildingValuation.sortProductionList) {
-    buildings.sort((a, b) => {
-      const aPriority = Number(a.wysBuildingPriority);
-      const bPriority = Number(b.wysBuildingPriority);
-      const aScored = Number.isFinite(aPriority);
-      const bScored = Number.isFinite(bPriority);
-      if (aScored !== bScored) return aScored ? -1 : 1;
-      if (aScored && aPriority !== bPriority) return bPriority - aPriority;
-      return Number(a.wysOriginalIndex) - Number(b.wysOriginalIndex);
-    });
-  }
-  return value;
+  const mode = WeightedYieldConfig.buildingValuation.sortProductionList
+    ? WeightedYieldSettings.get("buildingSortMode")
+    : BUILDING_SORT_MODE.DEFAULT;
+  return { ...value, buildings: sortBuildingItems(buildings, mode) };
 }
-
 function syncBuildingListScores(screen, value) {
   const buildings = value?.buildings;
   const itemElementMap = screen?.itemElementMap;
@@ -186,16 +168,24 @@ function syncBuildingListScores(screen, value) {
   const evaluationsByType = new Map(
     buildings.map((item) => [item.type, item.wysBuildingEvaluation ?? null]),
   );
+  const itemsByType = new Map(
+    Object.values(value ?? {}).filter(Array.isArray).flat().filter(item => item?.type)
+      .map(item => [item.type, item]),
+  );
   itemElementMap.forEach((row, type) => {
+    updateProductionRowCosts(row, itemsByType.get(type), screen.city);
     const evaluation = evaluationsByType.get(type);
     if (evaluation) renderBuildingListScore(row, evaluation);
     else clearBuildingListScore(row);
   });
 }
 
-function scheduleBuildingListScoreSync(screen, value) {
+function scheduleBuildingListScoreSync(screen, value, onSortChange) {
   const sync = () => {
     try {
+      // A queued refresh from an earlier sort/city must not overwrite newer UI.
+      if (screen.items !== value) return;
+      ensureBuildingSortControls(screen, onSortChange);
       syncBuildingListScores(screen, value);
     } catch (error) {
       diagnostic("Building list score display failed.", error);
@@ -256,7 +246,15 @@ function ensureProductionChooserPatched() {
         diagnostic("Building list scoring failed; using the game order.", error);
       }
       descriptor.set.call(this, value);
-      scheduleBuildingListScoreSync(this, value);
+      const onSortChange = (mode) => {
+        const current = descriptor.get.call(this);
+        if (!Array.isArray(current?.buildings)) return;
+        // Reuse scores: changing order does not require another placement scan.
+        const reordered = { ...current, buildings: sortBuildingItems(current.buildings, mode) };
+        descriptor.set.call(this, reordered);
+        scheduleBuildingListScoreSync(this, reordered, onSortChange);
+      };
+      scheduleBuildingListScoreSync(this, value, onSortChange);
     },
   });
   prototype[PATCH_FLAG] = WeightedYieldConfig.version;
@@ -274,3 +272,4 @@ if (WeightedYieldConfig.buildingValuation.enabled) {
   globalThis.setTimeout?.(ensureProductionChooserPatched, 0);
   globalThis.setTimeout?.(ensureProductionChooserPatched, 1000);
 }
+

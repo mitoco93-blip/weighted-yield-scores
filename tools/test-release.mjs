@@ -33,10 +33,10 @@ const [i18n, settings, options, settingsEditor, englishOptionsText, japaneseOpti
 ]);
 const packageMetadata = JSON.parse(await read("package.json"));
 
-assert.equal(packageMetadata.version, "0.4.0-beta.1");
-assert.match(config, /version:\s*"0\.4\.0-beta\.1"/);
-assert.match(modinfo, /<Mod id="wys-weighted-yield-scores" version="79"/);
-assert.match(modinfo, /<Version>0\.4\.0-beta\.1<\/Version>/);
+assert.equal(packageMetadata.version, "0.4.0-beta.2");
+assert.match(config, /version:\s*"0\.4\.0-beta\.2"/);
+assert.match(modinfo, /<Mod id="wys-weighted-yield-scores" version="94"/);
+assert.match(modinfo, /<Version>0\.4\.0-beta\.2<\/Version>/);
 assert.match(modinfo, /<Authors>mitoco93-blip<\/Authors>/);
 assert.doesNotMatch(modinfo, /<References>|bz-city-hall/);
 assert.match(readme, /^# Weighted Yield Scores$/m);
@@ -45,8 +45,8 @@ assert.match(readme, /\[技術資料\]\(TECHNICAL_NOTES_JA\.md\)/);
 assert.doesNotMatch(readme, /chatgpt\.com/);
 assert.match(readme, /^## 更新履歴$/m);
 assert.match(englishReadme, /^## Changelog$/m);
-assert.match(readme, /^### 0\.4\.0-beta\.1（公開日未定）$/m);
-assert.match(englishReadme, /^### 0\.4\.0-beta\.1 \(release date TBD\)$/m);
+assert.match(readme, /^### 0\.4\.0-beta\.2（公開日未定）$/m);
+assert.match(englishReadme, /^### 0\.4\.0-beta\.2 \(Release date TBD\)$/m);
 assert.doesNotMatch(technicalNotes, /^## Changelog$/m);
 assert.doesNotMatch(japaneseTechnicalNotes, /^## 更新履歴$/m);
 assert.doesNotMatch(technicalNotes, /^## 0\.\d/m);
@@ -193,9 +193,9 @@ assert.match(recommendationPatch, /handler\?\.growthModelGroup/);
 assert.match(recommendationPatch, /wysWeightedRecommendationModelGroup/);
 assert.match(recommendationPatch, /getBestPlotIndexes/);
 assert.match(recommendationPatch, /mergeRecommendationCandidates\(improvements, specialists\)/);
-assert.match(recommendationPatch, /state\.improvementScores\.keys\(\)/);
+assert.match(recommendationPatch, /handler\.validPlots/);
 assert.match(recommendationPatch, /city\.isTown/);
-assert.match(recommendationPatch, /WeightedYieldRuntime\.getImprovementScore/);
+assert.match(recommendationPatch, /WeightedYieldRuntime\.getPlacementImprovementScore/);
 assert.match(recommendationPatch, /WeightedYieldRuntime\.getSpecialistScore/);
 assert.match(recommendationPatch, /VFX_3dUI_Tut_SelectThis_01/);
 assert.match(main, /patch-acquire-tile-recommendation\.js/);
@@ -222,9 +222,9 @@ assert.doesNotMatch(
   buildingEvaluator,
   /getConstructibleStaticYieldRecord\(overwrittenImprovement\)/,
 );
-assert.match(buildingEvaluator, /getOverbuildableConstructibleTypes/);
-assert.match(buildingEvaluator, /getMissedBuildingOverbuildRecord/);
-assert.match(buildingEvaluator, /missedBuildingOverbuildRecord/);
+assert.doesNotMatch(buildingEvaluator, /getOverbuildableConstructibleTypes/);
+assert.doesNotMatch(buildingEvaluator, /getMissedBuildingOverbuildRecord/);
+assert.doesNotMatch(buildingEvaluator, /missedBuildingOverbuildRecord/);
 assert.doesNotMatch(buildingPatch, /building-diagnostics/);
 assert.doesNotMatch(buildingPatch, /logTwoBuildingReplacementDiagnostic/);
 assert.match(buildingEvaluator, /complete: !ruralReplacement \|\| Boolean\(relocation\)/);
@@ -268,15 +268,15 @@ assert.match(productionPatch, /itemElementMap/);
 assert.match(productionPatch, /renderBuildingListScore/);
 assert.match(productionPatch, /clearBuildingListScore/);
 assert.match(buildingListScore, /data-wys-building-list-score/);
-assert.match(buildingListScore, /nameElement\.append\?\.\(scoreElement\)/);
+assert.match(buildingListScore, /scoreParent\.append\?\.\(scoreElement\)/);
 assert.match(buildingListScore, /font-body/);
-assert.match(buildingListScore, /display = "inline-flex"/);
+assert.match(buildingListScore, /display = "block"/);
 assert.match(buildingListScore, /whiteSpace = "nowrap"/);
 assert.match(buildingListScore, /flexShrink = "0"/);
 assert.equal(
   buildingListScore.match(/fontSize = "0\.8em"/g)?.length,
-  3,
-  "W, separator and E must use the same font size",
+  1,
+  "W, separator and E inherit the common wrapper font size",
 );
 assert.match(buildingListScore, /fontWeight = "700"/);
 assert.doesNotMatch(buildingListScore, /innerHTML/);
@@ -379,6 +379,6 @@ assert.match(runtime, /calculateAllBuildingsPlacements already contains only leg
 
 // Improvement candidates must refresh from the improvement-screen lifecycle.
 assert.match(placePatch, /prototype\.updateExpandPlots/);
-assert.match(placePatch, /WeightedYieldRuntime\.refreshImprovements\(cityID\)/);
+assert.match(placePatch, /WeightedYieldRuntime\.refreshImprovements\(cityID,/);
 
 console.log("Weighted Yield Scores project checks passed.");

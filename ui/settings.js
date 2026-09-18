@@ -6,7 +6,14 @@ export const FOOD_MODE = Object.freeze({
   FIXED: 1,
 });
 
+export const BUILDING_SORT_MODE = Object.freeze({
+  EFFICIENCY: "efficiency",
+  WEIGHTED: "weighted",
+  DEFAULT: "default",
+});
+
 export const DEFAULT_SETTINGS = Object.freeze({
+  buildingSortMode: BUILDING_SORT_MODE.EFFICIENCY,
   foodMode: FOOD_MODE.DYNAMIC,
   foodWeight: 0.2,
   productionWeight: 1,
@@ -34,6 +41,11 @@ const finiteOr = (value, fallback) => {
 
 function normalizeSetting(optionID, value) {
   const fallback = DEFAULT_SETTINGS[optionID];
+  if (optionID === "buildingSortMode") {
+    return Object.values(BUILDING_SORT_MODE).includes(value)
+      ? value
+      : BUILDING_SORT_MODE.EFFICIENCY;
+  }
   if (optionID === "foodMode") {
     return Number(value) === FOOD_MODE.FIXED
       ? FOOD_MODE.FIXED

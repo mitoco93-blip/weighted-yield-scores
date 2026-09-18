@@ -515,8 +515,10 @@ function refreshSpecialistScores(city) {
   state.specialistScores = scores;
 }
 
-function refreshImprovementScores(cityID) {
-  const result = getExpansionResult(cityID);
+function refreshImprovementScores(cityID, candidateResult = undefined) {
+  // Resettlement is a unit command; CityCommands.EXPAND can be empty even
+  // when that unit has legal plots. Use its authoritative candidates if given.
+  const result = candidateResult === undefined ? getExpansionResult(cityID) : candidateResult;
   const plots = result?.Plots;
   if (!Array.isArray(plots)) {
     diagnostic(
@@ -1045,12 +1047,12 @@ export const WeightedYieldRuntime = {
     }
   },
 
-  refreshImprovements(cityID) {
+  refreshImprovements(cityID, candidateResult = undefined) {
     if (cityID == null) return;
     try {
       const city = globalThis.Cities?.get?.(cityID);
       updateSettlementContext(cityID, city);
-      refreshImprovementScores(cityID);
+      refreshImprovementScores(cityID, candidateResult);
       if (city) revalueCandidateScores(city);
       state.generation += 1;
       notifyScoreCache("improvement", "candidates");
@@ -1064,6 +1066,17 @@ export const WeightedYieldRuntime = {
     if (cached) return cached;
     if (!fallbackInfo) return null;
     return { ...scoreSpecialistPlacement(fallbackInfo), info: fallbackInfo };
+  },
+
+  isForCity(cityID) {
+    return cityID != null && componentIDsMatch(state.cityID, cityID);
+  },
+
+  // Building valuation may cache hypothetical relocation plots. Those are not
+  // proof that a citizen can actually be placed there in the current picker.
+  getPlacementImprovementScore(cityID, plotIndex, validPlots) {
+    if (!this.isForCity(cityID) || !validPlots?.includes?.(plotIndex)) return null;
+    return this.getImprovementScore(plotIndex);
   },
 
   getImprovementScore(plotIndex) {

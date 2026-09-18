@@ -55,6 +55,10 @@ function updateScoreFromModel(model) {
   // constructible first so an expansion tile is never mislabeled as specialist.
   const plotIndex = model.hoveredPlotIndex;
   if (plotIndex != null && model.constructibleToBeBuiltOnExpand) {
+    if (!model.getExpandPlots?.().some(candidate => candidate.plotIndex === plotIndex)) {
+      setScoreText();
+      return;
+    }
     const scored = WeightedYieldRuntime.getHoveredImprovementScore(
       plotIndex,
       model.afterYieldDeltasJSONd,
@@ -86,16 +90,21 @@ if (!prototype[PATCH_FLAG]) {
   const originalUpdateExpandPlots = prototype.updateExpandPlots;
   if (typeof originalUpdateExpandPlots === "function") {
     prototype.updateExpandPlots = function (cityID, ...args) {
-      // Read once before the base method changes interface mode, and once after
-      // it has finished populating its own candidate data.
-      WeightedYieldRuntime.refreshImprovements(cityID);
+      // Use exactly the list produced by the native command, including an
+      // empty list on failure. Never retain building-valuation fallback plots
+      // or query EXPAND a second time with a potentially different snapshot.
+      const refresh = () => {
+        const candidates = this.getExpandPlots?.() ?? [];
+        WeightedYieldRuntime.refreshImprovements(cityID, {
+          Plots: candidates.map(candidate => candidate.plotIndex),
+          ConstructibleTypes: candidates.map(candidate => candidate.constructibleType),
+        });
+      };
       const result = originalUpdateExpandPlots.call(this, cityID, ...args);
-      WeightedYieldRuntime.refreshImprovements(cityID);
       if (typeof result?.then === "function") {
-        result.then(
-          () => WeightedYieldRuntime.refreshImprovements(cityID),
-          (error) => diagnostic("updateExpandPlots promise failed.", error),
-        );
+        result.then(refresh, error => diagnostic("updateExpandPlots promise failed.", error));
+      } else {
+        refresh();
       }
       return result;
     };
@@ -103,6 +112,41 @@ if (!prototype[PATCH_FLAG]) {
     diagnostic("PlacePopulation.updateExpandPlots was not found.");
   }
 
+  // Migrants enter via UnitCommands.RESETTLE, not the city's EXPAND command.
+  // Read the list the native model has just built so every eligible plot is
+  // scored before the acquire-tile lens draws (hover can refine it afterward).
+  const originalResettle = prototype.updateExpandPlotsForResettle;
+  if (typeof originalResettle === "function") {
+    prototype.updateExpandPlotsForResettle = function (unitID, ...args) {
+      const refresh = () => {
+        try {
+          const location = globalThis.Units?.get?.(unitID)?.location;
+          if (!location || location.x < 0 || location.y < 0) return;
+          // Match AcquireTileInterfaceMode.getUnitCityID. Never treat a unit
+          // component ID or a previously selected city as the receiving city.
+          const cityID = globalThis.MapCities?.getCity?.(location.x, location.y);
+          if (!cityID || !globalThis.Cities?.get?.(cityID)) return;
+          const candidates = this.getExpandPlots?.() ?? this.expandPlots;
+          if (!Array.isArray(candidates)) return;
+          WeightedYieldRuntime.refreshImprovements(cityID, {
+            Plots: candidates.map((candidate) => candidate.plotIndex),
+            ConstructibleTypes: candidates.map((candidate) => candidate.constructibleType),
+          });
+        } catch (error) {
+          diagnostic("Resettlement candidate score refresh failed.", error);
+        }
+      };
+      const result = originalResettle.call(this, unitID, ...args);
+      if (typeof result?.then === "function") {
+        result.then(refresh, (error) => diagnostic("Resettlement candidate update failed.", error));
+      } else {
+        refresh();
+      }
+      return result;
+    };
+  } else {
+    diagnostic("PlacePopulation.updateExpandPlotsForResettle was not found.");
+  }
   const originalUpdate = prototype.update;
   if (typeof originalUpdate === "function") {
     prototype.update = function (...args) {
