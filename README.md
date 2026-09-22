@@ -36,9 +36,11 @@ To save space, the Ageless label on Warehouse buildings and other Ageless buildi
 
 ## Default Valuation Rates
 
-By default, the following amounts are treated as equal in value:
+By default, each point of yield is valued using the following weights, with 1 Production as the baseline.
 
-1 Influence = 2 Production = 4 Science = 4 Culture = 7 Gold = 10 Happiness
+**Influence: 2 / Production: 1 / Science: 0.5 / Culture: 0.5 / Gold: approximately 0.286 / Happiness: 0.2**
+
+A higher weight means greater value per point of yield.
 
 Food uses a dynamic value by default, rather than a fixed weight. Its value is calculated for each settlement based on factors such as Population and the Food remaining until growth.
 
