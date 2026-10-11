@@ -1,3 +1,4 @@
+import "./resource-settings-editor.js";
 import "/core/ui/options/screen-options.js";
 import {
   CategoryType,
@@ -28,6 +29,9 @@ if (!document.getElementById("wys-mod-options-style")) {
 }
 
 Options.addInitCallback(() => {
+  Options.addOption({category:CategoryType.Mods,group:'wys_weighted_yield_scores',type:OptionType.Editor,
+    id:'wys-resource-settings',editorTagName:'wys-resource-editor',label:'LOC_OPTIONS_WYS_RESOURCE_SETTINGS',
+    description:'LOC_OPTIONS_WYS_RESOURCE_DESCRIPTION',caption:'LOC_OPTIONS_WYS_OPEN_SETTINGS'});
   Options.addOption({
     category: CategoryType.Mods,
     group: "wys_weighted_yield_scores",

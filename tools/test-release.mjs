@@ -33,10 +33,10 @@ const [i18n, settings, options, settingsEditor, englishOptionsText, japaneseOpti
 ]);
 const packageMetadata = JSON.parse(await read("package.json"));
 
-assert.equal(packageMetadata.version, "0.4.0-beta.2");
-assert.match(config, /version:\s*"0\.4\.0-beta\.2"/);
-assert.match(modinfo, /<Mod id="wys-weighted-yield-scores" version="94"/);
-assert.match(modinfo, /<Version>0\.4\.0-beta\.2<\/Version>/);
+assert.equal(packageMetadata.version, "0.4.0-beta.3");
+assert.match(config, /version:\s*"0\.4\.0-beta\.3"/);
+assert.match(modinfo, /<Mod id="wys-weighted-yield-scores" version="124"/);
+assert.match(modinfo, /<Version>0\.4\.0-beta\.3<\/Version>/);
 assert.match(modinfo, /<Authors>mitoco93-blip<\/Authors>/);
 assert.doesNotMatch(modinfo, /<References>|bz-city-hall/);
 assert.match(readme, /^# Weighted Yield Scores$/m);
@@ -184,8 +184,8 @@ assert.match(config, /showVersionInPanel:\s*false/);
 assert.match(config, /resourceValuation:\s*\{/);
 assert.match(runtime, /getUnassignedResourceYieldBonus/);
 assert.match(runtime, /GameplayMap\?\.getResourceType/);
-assert.match(config, /RESOURCECLASS_EMPIRE/);
-assert.match(config, /RESOURCECLASS_TREASURE/);
+assert.match(runtime, /RESOURCECLASS_EMPIRE/);
+assert.match(runtime, /RESOURCECLASS_TREASURE/);
 
 // Recommendation rings replace City Hall's simple-total ring when available
 // and fall back to an independent model group without City Hall.
@@ -227,7 +227,7 @@ assert.doesNotMatch(buildingEvaluator, /getMissedBuildingOverbuildRecord/);
 assert.doesNotMatch(buildingEvaluator, /missedBuildingOverbuildRecord/);
 assert.doesNotMatch(buildingPatch, /building-diagnostics/);
 assert.doesNotMatch(buildingPatch, /logTwoBuildingReplacementDiagnostic/);
-assert.match(buildingEvaluator, /complete: !ruralReplacement \|\| Boolean\(relocation\)/);
+assert.match(buildingEvaluator, /complete: !ruralReplacement \|\| Boolean\(excludeRuralImpacts\) \|\| Boolean\(relocation\)/);
 assert.match(buildingEvaluator, /entry\?\.complete !== false/);
 assert.match(runtime, /refreshBuildingCandidates\(cityID, allPlacementData\)/);
 assert.match(runtime, /refreshImprovementScoresFromPlacementData/);
@@ -246,7 +246,7 @@ assert.match(buildingPatch, /display\.buildingBadgeScale/);
 assert.match(productionPatch, /selectBestBuildingPlacement/);
 assert.match(productionPatch, /calculateBuildingPriority/);
 assert.match(productionPatch, /refreshBuildingCandidates/);
-assert.match(productionPatch, /getConstructibleProductionCost/);
+assert.match(productionPatch, /getBuildingCost/);
 assert.doesNotMatch(productionPatch, /decorateItemName/);
 assert.doesNotMatch(productionPatch, /item\.name\s*=/);
 assert.match(productionPatch, /applyFixedBuildingListName\(item\)/);

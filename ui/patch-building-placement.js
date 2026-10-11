@@ -1,3 +1,4 @@
+import { BuildingEvaluationMode } from "./building-evaluation-mode.js";
 import { InterfaceMode } from "/core/ui/interface-modes/interface-modes.js";
 import LensManager from "/core/ui/lenses/lens-manager.js";
 import {
@@ -18,6 +19,8 @@ import {
   evaluateBuildingPlacement,
   selectBestBuildingPlacement,
 } from "./building-evaluator.js";
+
+import { getBuildingCost } from "./building-cost.js";
 
 const LAYER_NAME = "fxs-building-placement-layer";
 const MODE_NAME = "INTERFACEMODE_PLACE_BUILDING";
@@ -82,9 +85,8 @@ function buildWeightedPlacementOptions() {
   ]));
   const developedPlots = new Set(BuildingPlacementManager.developedPlots ?? []);
   const purchasing = isPurchasing();
-  const productionCost = Number(
-    city?.Production?.getConstructibleProductionCost?.(constructible.$hash),
-  );
+  const context = InterfaceMode.getInterfaceModeHandler?.(MODE_NAME)?.Context ??
+    InterfaceMode.getParameters?.() ?? {};
   const options = [];
   const nextCache = new Map();
 
@@ -96,6 +98,7 @@ function buildWeightedPlacementOptions() {
       constructible,
       placement,
       isPurchasing: purchasing,
+      excludeRuralImpacts: BuildingEvaluationMode.isExcluded(cityID),
       isRepairing: BuildingPlacementManager.isRepairing,
       populationCandidates,
       // The engine has already classified these ExpandUrbanPlots as existing
@@ -104,13 +107,19 @@ function buildWeightedPlacementOptions() {
       forceRuralReplacement: developedPlots.has(plotIndex),
     });
     if (!baseEvaluation) continue;
+    const location = globalThis.GameplayMap?.getLocationFromIndex?.(plotIndex);
+    const cost = getBuildingCost({city, constructible, isPurchasing: purchasing,
+      placement, isRepairing: BuildingPlacementManager.isRepairing,
+      operationArguments: {...context.OperationArguments,
+        ...(location ? {X: location.x, Y: location.y} : {})},
+    });
     const evaluation = {
       ...baseEvaluation,
       constructible,
-      productionCost,
+      ...cost,
       priority: calculateBuildingPriority({
         score: baseEvaluation.score,
-        productionCost,
+        efficiencyCost: cost.efficiencyCost,
       }),
     };
     const changes = BuildingPlacementManager.getTotalYieldChanges?.(plotIndex) ?? [];
@@ -343,7 +352,7 @@ function scoreLabel(evaluation) {
     evaluation.score,
     WeightedYieldConfig.display.panelDecimals,
   );
-  if (!evaluation.ruralReplacement) return `${t("weighted")} ${score}`;
+  if (!evaluation.ruralReplacement || evaluation.excludeRuralImpacts) return `${t("weighted")} ${score}`;
   const relocation = formatScore(
     evaluation.relocationScore,
     WeightedYieldConfig.display.panelDecimals,
@@ -477,6 +486,18 @@ class WeightedPlaceBuildingPanel {
       buildWeightedPlacementOptions();
     }
     const evaluation = evaluationsByPlot.get(plotIndex);
+    if (WeightedYieldConfig.diagnostics && evaluation) {
+      const relocation = evaluation.relocation;
+      const audit = JSON.stringify({version:WeightedYieldConfig.version, buildingPlot:plotIndex,
+        relocationPlot:relocation?.plotIndex ?? null,
+        resource:relocation?.scored?.resource?.definition?.ResourceType ?? null,
+        resourceScore:evaluation.resourceValuation?.score ?? 0,
+        inferred:Boolean(relocation?.scored?.inferredFromFrontier), score:evaluation.score});
+      if (this.wysLastRelocationAudit !== audit) {
+        this.wysLastRelocationAudit = audit;
+        diagnostic('Selected relocation audit ' + audit);
+      }
+    }
     const text = scoreLabel(evaluation);
     for (const element of this.elements) {
       element.textContent = text;

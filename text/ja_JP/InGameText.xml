@@ -70,5 +70,7 @@
     <Replace Tag="LOC_OPTIONS_WYS_CLOSE_SETTINGS" Language="ja_JP">
       <Text>設定を閉じる</Text>
     </Replace>
-  </LocalizedText>
+  <Row Tag="LOC_OPTIONS_WYS_RESOURCE_SETTINGS" Language="ja_JP"><Text>資源評価の設定</Text></Row>
+<Row Tag="LOC_OPTIONS_WYS_RESOURCE_DESCRIPTION" Language="ja_JP"><Text>資源の配置・生産割合・各効果の評価を調整します。</Text></Row>
+</LocalizedText>
 </Database>

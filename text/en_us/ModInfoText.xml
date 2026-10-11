@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database>
+  <EnglishText>
+    <Row Tag="LOC_MOD_WYS_NAME"><Text>Weighted Yield Scores</Text></Row>
+    <Row Tag="LOC_MOD_WYS_DESCRIPTION"><Text>Version: 0.4.0-beta.3. Shows configurable production-equivalent scores for improvements, specialists and building choices.</Text></Row>
+  </EnglishText>
+</Database>

@@ -1,3 +1,4 @@
+import { resourceDetailLines } from "./resource-details.js";
 import { WeightedYieldConfig } from "./config.js";
 import {
   additionOperator,
@@ -142,6 +143,7 @@ export function getPopulationEvaluationDetailModel(scored, kind, foodWeight) {
       `${operator} ${t("happinessAdjustment")} ${unsignedMagnitude(adjustment, 2)}`,
     );
   }
+  lines.push(...resourceDetailLines(scored.resourceValuation));
   lines.push(`${equationEquals()} [B]${formatScore(scored.score, 2)}[/B]`);
 
   if (Number.isFinite(Number(foodWeight)) && Number(foodWeight) > 0) {

@@ -70,5 +70,7 @@
     <Row Tag="LOC_OPTIONS_WYS_CLOSE_SETTINGS">
       <Text>Close settings</Text>
     </Row>
-  </EnglishText>
+  <Row Tag="LOC_OPTIONS_WYS_RESOURCE_SETTINGS"><Text>Resource valuation settings</Text></Row>
+<Row Tag="LOC_OPTIONS_WYS_RESOURCE_DESCRIPTION"><Text>Adjust resource placement, production shares and individual effect values.</Text></Row>
+</EnglishText>
 </Database>

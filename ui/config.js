@@ -2,7 +2,7 @@ import { WeightedYieldSettings } from "./settings.js";
 
 /** Shared runtime configuration for Weighted Yield Scores. */
 export const WeightedYieldConfig = {
-  version: "0.4.0-beta.2",
+  version: "0.4.0-beta.3",
   baselineYieldType: "YIELD_PRODUCTION",
 
   // A town converts Production into Gold. Keep the common production-
@@ -48,7 +48,7 @@ export const WeightedYieldConfig = {
   // Treasure resources do not receive that bonus in the base-game UI.
   resourceValuation: {
     enabled: true,
-    excludedClasses: ["RESOURCECLASS_EMPIRE", "RESOURCECLASS_TREASURE"],
+    excludedClasses: [],
   },
 
   // Improvement choices score the estimated total output of the resulting tile.
@@ -147,5 +147,7 @@ export const WeightedYieldConfig = {
 
   // Logs only warnings that help diagnose UI changes after a game update.
   diagnostics: true,
+  // Read-only development probes stay disabled in the public build.
+  developmentProbes: false,
 };
 

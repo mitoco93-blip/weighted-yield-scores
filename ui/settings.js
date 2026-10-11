@@ -1,3 +1,5 @@
+import { RESOURCE_SETTING_DEFAULTS, normalizeResourceSetting } from "./resource-settings.js";
+
 const MOD_ID = "wys-weighted-yield-scores";
 const SHARED_STORAGE_KEY = "modSettings";
 
@@ -13,6 +15,7 @@ export const BUILDING_SORT_MODE = Object.freeze({
 });
 
 export const DEFAULT_SETTINGS = Object.freeze({
+  ...RESOURCE_SETTING_DEFAULTS,
   buildingSortMode: BUILDING_SORT_MODE.EFFICIENCY,
   foodMode: FOOD_MODE.DYNAMIC,
   foodWeight: 0.2,
@@ -39,7 +42,8 @@ const finiteOr = (value, fallback) => {
   return Number.isFinite(number) ? number : fallback;
 };
 
-function normalizeSetting(optionID, value) {
+function normalizeSetting(optionID, value, previous = DEFAULT_SETTINGS[optionID]) {
+  if (optionID in RESOURCE_SETTING_DEFAULTS) return normalizeResourceSetting(optionID, value, previous);
   const fallback = DEFAULT_SETTINGS[optionID];
   if (optionID === "buildingSortMode") {
     return Object.values(BUILDING_SORT_MODE).includes(value)
@@ -111,7 +115,7 @@ export class WeightedYieldSettingsStore {
   }
 
   set(optionID, value) {
-    this.data[optionID] = normalizeSetting(optionID, value);
+    this.data[optionID] = normalizeSetting(optionID, value, this.get(optionID));
     this.save(optionID);
   }
 
@@ -120,7 +124,29 @@ export class WeightedYieldSettingsStore {
     this.set(optionID, DEFAULT_SETTINGS[optionID]);
   }
 
+  getResourceEffectScale(key) {
+    const values = readSharedStorage().resourceEffectScales;
+    const value = Number(values?.[key]);
+    return Number.isFinite(value) && value >= 0 && value <= 10 ? value : 1;
+  }
+
+  setResourceEffectScale(key, value) {
+    if (typeof key !== 'string' || !/^[a-z]+:RESOURCE_[A-Z_]+:[A-Za-z0-9_]+$/.test(key)) return;
+    const number = Number(value);
+    if (value == null || String(value).trim() === '' || !Number.isFinite(number) || number < 0 || number > 10) return;
+    const stored = readSharedStorage();
+    stored.resourceEffectScales = {...stored.resourceEffectScales, [key]:number};
+    writeSharedStorage(stored);
+  }
+
+  resetResourceEffects() {
+    const stored = readSharedStorage();
+    stored.resourceEffectScales = {};
+    writeSharedStorage(stored);
+  }
+
   reset() {
+    this.resetResourceEffects();
     for (const optionID of Object.keys(DEFAULT_SETTINGS)) {
       this.resetOption(optionID);
     }

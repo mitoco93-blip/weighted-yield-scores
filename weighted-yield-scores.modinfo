@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Mod id="wys-weighted-yield-scores" version="94" xmlns="ModInfo">
+<Mod id="wys-weighted-yield-scores" version="124" xmlns="ModInfo">
   <Properties>
-    <Name>Weighted Yield Scores</Name>
-    <Version>0.4.0-beta.2</Version>
-    <Description>Version: 0.4.0-beta.2. Shows configurable production-equivalent scores for improvements, specialists and building choices.</Description>
+    <Name>LOC_MOD_WYS_NAME</Name>
+    <Version>0.4.0-beta.3</Version>
+    <Description>LOC_MOD_WYS_DESCRIPTION</Description>
     <Authors>mitoco93-blip</Authors>
     <Package>Mod</Package>
     <AffectsSavedGames>0</AffectsSavedGames>
   </Properties>
+
+  <LocalizedText>
+    <File>text/en_us/ModInfoText.xml</File>
+    <File>text/ja_JP/ModInfoText.xml</File>
+  </LocalizedText>
 
   <Dependencies>
     <Mod id="base-standard" title="LOC_MODULE_BASE_STANDARD_NAME" />

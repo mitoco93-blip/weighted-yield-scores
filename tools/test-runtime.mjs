@@ -161,10 +161,9 @@ resourceType = 1;
 unassignedBonuses = { 1002: 1, 1005: 1 };
 WeightedYieldRuntime.refreshImprovements({ owner: 0, id: 1, type: 1 });
 const antiquityResource = WeightedYieldRuntime.getImprovementScore(42);
-assert.deepEqual(antiquityResource.resourceRecord, {
-  YIELD_GOLD: 1,
-  YIELD_HAPPINESS: 1,
-});
+assert.deepEqual(antiquityResource.resourceRecord, {});
+assert.equal(antiquityResource.resourceValuation.resourceType, "RESOURCE_TEST");
+assert.ok(antiquityResource.resourceValuation.issues.includes("game-state"));
 assert.ok(Math.abs(antiquityResource.score - (1.4 + 17 / 35)) < 1e-12);
 
 unassignedBonuses = { 1002: 2, 1005: 2 };
@@ -234,6 +233,7 @@ globalThis.Game.CityCommands.canStart = () => ({
 globalThis.Cities.get = () => ({
   isTown: false,
   getPurchasedPlots: () => [10],
+  Growth: { getGrowthDomain: () => [42] },
   Workers: { GetAllPlacementInfo: () => [] },
 });
 WeightedYieldRuntime.refreshBuildingCandidates(

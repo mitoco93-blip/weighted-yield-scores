@@ -1,3 +1,4 @@
+import { resourceDetailLines } from "./resource-details.js";
 import { WeightedYieldConfig } from "./config.js";
 import {
   additionOperator,
@@ -144,7 +145,7 @@ export function getBuildingListScoreParts(evaluation) {
   if (!evaluation) return null;
   return {
     weightedValue: formatScore(evaluation.score, 2),
-    efficiency: formatScore(evaluation.priority, 0),
+    efficiency: evaluation.priority == null ? "—" : formatScore(evaluation.priority, 0),
   };
 }
 
@@ -170,7 +171,7 @@ export function getBuildingEvaluationDetailModel(evaluation) {
   if (!evaluation) return null;
   const lines = [t("weightedValueHeading")];
 
-  if (evaluation.ruralReplacement) {
+  if (evaluation.ruralReplacement && !evaluation.excludeRuralImpacts) {
     lines.push(
       contributionExpression(
         evaluation.buildingRecord,
@@ -201,14 +202,50 @@ export function getBuildingEvaluationDetailModel(evaluation) {
       ),
     );
   }
+  lines.push(...resourceDetailLines(evaluation.resourceValuation));
   lines.push(`${equationEquals()} [B]${formatScore(evaluation.score, 2)}[/B]`);
 
-  const productionCost = Number(evaluation.productionCost);
+  if (evaluation.excludeRuralImpacts) lines.push(t("excludeRuralImpactsHint"));
+  if (evaluation.relocation?.scored?.inferredFromFrontier) lines.push(t("relocationEstimateHint"));
+
+  // Match the terms actually shown above. Opposing food changes still need
+  // their weight explained, even when their combined food change is zero.
+  const foodRecords = evaluation.ruralReplacement && !evaluation.excludeRuralImpacts
+    ? [evaluation.buildingRecord, evaluation.relocation?.record]
+    : [evaluation.correctedRecord];
+  const hasFoodTerm = foodRecords.some(record => Math.abs(Number(record?.YIELD_FOOD ?? 0)) >= 1e-9);
+  if (evaluation.foodValuation?.mode === "export" && hasFoodTerm) {
+    lines.push(t("exportFoodMultiplier", {
+      value: formatScore(evaluation.foodValuation.weight, 3),
+      count: evaluation.foodValuation.recipients.length,
+    }));
+  }
+
+  const productionCost = Number(evaluation.efficiencyCost ??
+    (evaluation.isPurchasing ? NaN : evaluation.productionCost));
   const scale =
     Number(WeightedYieldConfig.buildingValuation.priorityScale) || 10000;
   if (Number.isFinite(productionCost) && productionCost > 0) {
+    lines.push(t("efficiencyHeading"));
+    if (evaluation.overbuildBonusPercent > 0 && !evaluation.isPurchasing) {
+      const sources=(evaluation.overbuildBonusSources ?? []).map(source => globalThis.Locale?.compose?.(source.name) ?? source.name).filter(Boolean).join(" + ");
+      lines.push(t("overbuildCostConversion", {
+        percent: formatScore(evaluation.overbuildBonusPercent, 2), sources,
+        cost: formatScore(evaluation.productionCost, 2),
+        multiplier: formatScore(1 + evaluation.overbuildBonusPercent / 100, 3),
+        production: formatScore(productionCost, 2),
+      }));
+    } else if (evaluation.overbuildBonusUnavailable && !evaluation.isPurchasing) {
+      lines.push(t("overbuildBonusUnavailable"));
+    }
+
+    if (evaluation.isPurchasing) {
+      lines.push(t("purchaseCostConversion", {
+        gold: formatScore(evaluation.purchaseCost, 2),
+        production: formatScore(productionCost, 2),
+      }));
+    }
     lines.push(
-      t("efficiencyHeading"),
       `${formatScore(evaluation.score, 2)} ÷ ${formatScore(
         productionCost,
         2,

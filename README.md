@@ -21,8 +21,8 @@ Building evaluations account for more than the building's own yields. They also 
 
 Each building name is followed by its weighted value, **W**, and efficiency, **E**.
 
-- **W (Weighted Value)**: The change in yields converted using your configured weights. This also accounts for maintenance and Population reassignment when a Rural improvement is replaced.
-- **E (Efficiency)**: W divided by the Production required to build, multiplied by 10,000.
+- **W (Weighted Value)**: The change in yields converted using your configured weights. This also accounts for maintenance, Population reassignment when a Rural improvement is replaced, and the effects of acquiring resources.
+- **E (Efficiency)**: W divided by the construction cost expressed in Production, multiplied by 10,000. Building with Production uses the required Production; purchasing uses the required Gold, converted at 1 Gold = 2/7 Production. Overbuilding Production bonuses from supported Governments and Traditions are also reflected in the efficiency calculation.
 
 Use the buttons in the list header to switch the sorting mode. Your selection is saved.
 
@@ -56,17 +56,19 @@ In settlements with negative Happiness, the evaluation also includes the reducti
 
 For improvement candidates in Towns, 1 Production is valued at the same weight as 1 Gold, reflecting the conversion of Production into Gold.
 
-You can change yield weights under **Options → Add-ons → Weighted Yield Scores settings**.
+Food sent from specialized Towns to Cities is valued using the Food value in the receiving Cities. If there are multiple receiving Cities, their Food values are averaged. This applies when dynamic Food valuation is enabled.
+
+You can change yield weights under **Options → Additional Content → Weighted Yield Scores settings**.
 
 ## Acquiring Resource Tiles
 
-Resources that can be assigned to slots are evaluated using the yields they provide while unassigned.
+The effects of acquiring resources, such as yield increases, Production bonuses, and Combat Strength, are converted into a comparison score and added to the evaluation. The details show the resource name and its value.
 
-Other resources are not included in the resource valuation.
+Resources assigned to slots are valued between their unassigned value and their value under optimal assignment, using the Expected use of slotted resources setting. The default of 50% uses the midpoint between these values.
 
-This generally results in a lower estimate than their actual value.
+Under **Options → Additional Content → Resource valuation settings**, you can change assumptions such as Production spending and Combat Strength value for each Age. Individual resource settings lets you change the valuation multiplier for each effect; the default is 100%. Hover over the ⓘ beside a setting for an explanation of its meaning and calculation.
 
-Improvements to resource valuation are being considered for future updates.
+Resource values are comparison estimates based on the current state of your empire and your expected use settings. Treasure Fleet rewards are not included. If required information cannot be obtained and an effect is omitted from the calculation, the details explain why.
 
 ## Compatibility
 
@@ -83,13 +85,26 @@ This mod is currently in beta. Please report calculation or display problems thr
 
 ## Features Under Consideration
 
-- More precise valuation when acquiring resource tiles.
+- Valuation of Wonders themselves.
 - Compatibility with additional UI mods.
-- Support for more special effects and placement conditions.
+- Support for special effects of buildings, Unique Buildings, and Unique Quarters.
 
 If there are other features you would like, please suggest them through [GitHub Issues](https://github.com/mitoco93-blip/weighted-yield-scores/issues). Frequently requested, feasible improvements will be prioritized.
 
 ## Changelog
+
+### 0.4.0-beta.3 (2026-10-11)
+
+#### Additions
+
+- Added valuation of resource effects such as yields, Production bonuses, and Combat Strength when acquiring resources.
+- Added resource valuation settings, including expected use by Age and valuation multipliers for individual resources.
+
+#### Fixes
+
+- Fixed building efficiency calculations to account for purchase costs and overbuilding Production bonuses.
+- Fixed the valuation of Food sent from specialized Towns to use Food values in the receiving Cities.
+- Fixed tile details disappearing during consecutive Population growth events within the same open screen.
 
 ### 0.4.0-beta.2 (2026-09-18)
 

@@ -1,4 +1,5 @@
 import { PlacePopulation } from "/base-standard/ui/place-population/model-place-population.js";
+import { BuildingPlacementManager } from "/base-standard/ui/building-placement/building-placement-manager.js";
 import { WeightedYieldConfig } from "./config.js";
 import { getPopulationEvaluationDetailModel } from "./population-details.js";
 import { t } from "./i18n.js";
@@ -90,6 +91,15 @@ if (!prototype[PATCH_FLAG]) {
   const originalUpdateExpandPlots = prototype.updateExpandPlots;
   if (typeof originalUpdateExpandPlots === "function") {
     prototype.updateExpandPlots = function (cityID, ...args) {
+      // Consecutive citizens keep this picker open. Native updatePlotOverlay
+      // updates EXPAND candidates but does not refresh the placement bundle
+      // from transitionTo. Newly reachable plots otherwise have no yield data
+      // and the native model returns before showing either detail panel.
+      try {
+        BuildingPlacementManager.initializePlacementData(cityID);
+      } catch (error) {
+        diagnostic("Growth placement data refresh failed.", error);
+      }
       // Use exactly the list produced by the native command, including an
       // empty list on failure. Never retain building-valuation fallback plots
       // or query EXPAND a second time with a potentially different snapshot.
@@ -198,6 +208,10 @@ class WeightedPlacePopulationPanel {
 
   afterAttach() {
     const component = this.component;
+    // Native buildView rebuilds these containers on each attach. Rebind only
+    // the current nodes, including nodes already created on a reused view.
+    this.scoreElements = [];
+    this.detailCards = [];
     const views = [
       component.improvementMinimizedContainer,
       component.improvementMaximizedContainer,
@@ -206,7 +220,11 @@ class WeightedPlacePopulationPanel {
     ].filter(Boolean);
 
     for (const view of views) {
-      if (view.querySelector("[data-wys-weighted-score]")) continue;
+      const existing = view.querySelector("[data-wys-weighted-score]");
+      if (existing) {
+        this.scoreElements.push(existing);
+        continue;
+      }
 
       const element = document.createElement("div");
       element.setAttribute("data-wys-weighted-score", "true");
@@ -265,6 +283,13 @@ class WeightedPlacePopulationPanel {
   afterDetach() {}
 
   render(text, kind = "", scored = null) {
+    // Native onAttach updates the model before subscribing to its selection
+    // event, then rebuilds both detail frames as hidden. Replay the current
+    // state directly for this view so consecutive growth does not depend on
+    // another hover change. Use the native handler to retain zoom behavior.
+    this.component.onPlacePopulationSelectionChanged?.({
+      detail: { state: PlacePopulation.selectionState },
+    });
     for (const element of this.scoreElements) {
       element.textContent = text;
       element.style.display = text ? "block" : "none";

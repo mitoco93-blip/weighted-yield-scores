@@ -1,3 +1,4 @@
+import { BuildingEvaluationMode } from "./building-evaluation-mode.js";
 import { BuildingPlacementManager } from "/base-standard/ui/building-placement/building-placement-manager.js";
 import { ProductionChooserScreen } from "/base-standard/ui/production-chooser/panel-production-chooser.js";
 import {
@@ -21,6 +22,8 @@ import {
   selectBestBuildingPlacement,
 } from "./building-evaluator.js";
 
+import { getBuildingCost } from "./building-cost.js";
+
 const PATCH_FLAG = "__wysProductionItemsPatchVersion";
 const latestEvaluations = new Map();
 let latestCityID = null;
@@ -43,7 +46,7 @@ function ensurePlacementData(city) {
   return BuildingPlacementManager.allPlacementData;
 }
 
-function scoreItem(city, item, allPlacementData, populationCandidates, isPurchasing) {
+function scoreItem(city, item, allPlacementData, populationCandidates, isPurchasing, excludeRuralImpacts = false) {
   const constructible = globalThis.GameInfo?.Constructibles?.lookup?.(item.type);
   if (!constructible) return null;
   const placementData = allPlacementData.find(
@@ -57,20 +60,15 @@ function scoreItem(city, item, allPlacementData, populationCandidates, isPurchas
       constructible,
       placement,
       isPurchasing,
+      excludeRuralImpacts,
       isRepairing: Boolean(item.repairDamaged),
       populationCandidates,
     }))
     .filter(Boolean);
   const selected = selectBestBuildingPlacement(evaluations);
   if (!selected.best) return null;
-  const itemProductionCost = Number(item.productionCost);
-  const engineProductionCost = Number(
-    city?.Production?.getConstructibleProductionCost?.(constructible.$hash),
-  );
-  const productionCost =
-    Number.isFinite(itemProductionCost) && itemProductionCost > 0
-      ? itemProductionCost
-      : engineProductionCost;
+  const cost = getBuildingCost({city, constructible, item, isPurchasing,
+    placement: selected.best.placement, isRepairing: Boolean(item.repairDamaged)});
 
   return {
     ...selected.best,
@@ -82,10 +80,10 @@ function scoreItem(city, item, allPlacementData, populationCandidates, isPurchas
     incompleteRuralCandidateCount: evaluations.filter(
       (evaluation) => evaluation.ruralReplacement && evaluation.complete === false,
     ).length,
-    productionCost,
+    ...cost,
     priority: calculateBuildingPriority({
       score: selected.best.score,
-      productionCost,
+      efficiencyCost: cost.efficiencyCost,
     }),
   };
 }
@@ -101,6 +99,7 @@ function decorateAndSortItems(screen, value) {
     }))
     : sourceBuildings;
   const city = screen?.city;
+  BuildingEvaluationMode.visit(city?.id);
   if (!city || !Array.isArray(buildings)) return value;
 
   const placementBundle = ensurePlacementData(city);
@@ -125,6 +124,7 @@ function decorateAndSortItems(screen, value) {
       allPlacementData,
       populationCandidates,
       Boolean(screen.isPurchase),
+      BuildingEvaluationMode.isExcluded(city.id),
     );
     if (!evaluation) continue;
     scoredCount += 1;
@@ -185,7 +185,11 @@ function scheduleBuildingListScoreSync(screen, value, onSortChange) {
     try {
       // A queued refresh from an earlier sort/city must not overwrite newer UI.
       if (screen.items !== value) return;
-      ensureBuildingSortControls(screen, onSortChange);
+      ensureBuildingSortControls(screen, onSortChange, globalThis.document, () => {
+        // Re-enter scoring for all buildings and refresh tooltips/row yields.
+        // The preserved original indexes still allow Default order to work.
+        screen.items = screen.items;
+      });
       syncBuildingListScores(screen, value);
     } catch (error) {
       diagnostic("Building list score display failed.", error);

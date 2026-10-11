@@ -19,6 +19,8 @@ The `foodValuation` section of `ui/config.js` contains these controls:
 
 The reference point at which 1 Food is valued as 1 Production is approximately 315 Food required for the next Population increase. The actual value varies with the current growth cost, candidate citizen values, and evaluation period. When set to Fixed, the configured Food weight is always used.
 
+For specialized Towns that send Food to Cities, dynamic Food values are calculated for each receiving City and averaged to obtain the Town value. Missing recipient data uses the configured fixed Food weight; if there are no recipients, the Town retains its local Food valuation. Fixed Food mode does not apply this dynamic recipient valuation.
+
 ## Dynamic Happiness Shortfall Adjustment
 
 At Happiness levels of zero or above, 1 Happiness is valued as 0.2 Production. If a candidate causes settlement Happiness to become negative or recover from a negative value, a Happiness shortfall adjustment accounts for the change in non-Food settlement yields: 5% per point of Happiness, capped at 80%.
@@ -29,9 +31,25 @@ Government abilities tied to Happiness thresholds of 20 or 40 are not included.
 
 ## Resource Tile Valuation
 
-For resource candidates, the evaluation adds the yields of one newly acquired, unassigned resource as a minimum value, in addition to the tile's own yields. This value comes from the game's `getUnassignedResourceYieldBonus`, so it reflects the Age and current rule modifiers.
+The value of acquiring one additional resource is evaluated separately from the tile's own yields. Unassigned yields come from the game's `getUnassignedResourceYieldBonus`. Resource-specific effects use effect data for the current Age and the current state of the empire.
 
-Empire and Treasure resources without an unassigned bonus are excluded. Effects gained by assigning a resource to a slot are currently excluded because they vary substantially with the destination.
+Slotted resources use the highest-value destination among settlements that meet assignment and trade-connection requirements. The mod does not optimize the entire allocation by rearranging existing resources.
+
+```text
+Resource value = Unassigned value + max(0, Optimal assignment value - Unassigned value) × Expected use
+```
+
+Expected use defaults to 50%. If another copy of the same resource is already unassigned, the unassigned value is used. Factory resources account for conditions such as Factory availability. Normal Empire and Treasure resource effects are evaluated for their applicable recipients; Treasure Fleet rewards are excluded.
+
+Combat Strength bonuses use the share of currently owned military units affected by the bonus. Commanders and support units are excluded. The default Science-equivalent values of +1 Combat Strength are 2 in Antiquity, 4 in Exploration, and 6 in Modern, based on a comparison of diplomatic military and scientific support. Resource Combat Strength is capped at +6, and only the increase from the additional copy is valued. Healing defaults to 7.5 Science per +1 healing, based on a comparison of the final-tier Scientific and Militaristic attribute rewards.
+
+Production bonuses use current City Production and configured shares of Production spending and eligible targets throughout the Age. These settings are separate from current army composition. Effects active only during celebrations use the configured share of time spent in celebrations.
+
+Modern construction bonuses for Factories, Rail Stations, and Ports convert saved Production into a per-turn value by dividing it by the turns remaining until the expected Modern Age end. Production already invested in unfinished construction is ignored; unfinished buildings use the full construction cost obtained from the game. Defaults assume 80% of Cities build using Production, a construction deadline of turn 60, and an Age end at turn 80. Turns are entered at Standard speed and scaled to game speed. Construction bonuses add no value for an already completed target building or after the construction deadline.
+
+Exploration Incense separates time spent assigned and used for eligible production from time spent unassigned. Destination Production uses the average across Cities in the empire. The default active share is 25%; time spent assigned but not used for eligible production is omitted. Additional Camel slots are valued through the gain from assigning eligible resources currently left unassigned.
+
+Individual resource multipliers scale the value of each effect and default to 100%. If required state or costs cannot be obtained, details indicate omitted effects or other limitations.
 
 ## Accuracy of Improvement Candidates
 
@@ -55,24 +73,27 @@ When overbuilding Kabaka's Lake, adjacency yields arising from the lake state th
 
 When overbuilding an Urban building, the evaluation includes changes to the yields and maintenance of the building that is actually replaced.
 
-If unowned Rural candidates cannot be obtained from the normal building screen, the mod reconstructs unowned, empty tiles adjacent to the settlement's territory and estimates their standard improvements using `District_FreeConstructibles`. These estimates include terrain yields, fixed yields from the standard improvement, and the minimum resource value. Future Warehouse, adjacency, and some conditional modifiers are not fully predicted.
+Reassignment candidates prioritize the plots returned by the game's `EXPAND` command. If these are unavailable, candidates are reconstructed from current building placement data. If that is also unavailable, estimates are limited to unowned, empty tiles adjacent to the settlement's territory and within the growth domain returned by `getGrowthDomain(true)`. No frontier estimate is made if the growth domain cannot be obtained. Frontier estimates use standard improvement yields from `District_FreeConstructibles`, but exclude resource value because acquisition is unconfirmed. Future Warehouse, adjacency, and some conditional modifiers are not fully predicted.
 
 The game's UI API does not return hypothetical yields for a Specialist slot that does not yet exist before a purchase. Purchase evaluations therefore also use only currently existing reassignment candidates, which can undervalue a purchase location when a newly created slot would be best. For construction, Population reassignment occurs before completion, so this limitation matches the actual sequence of play.
 
-## Shared Building List Efficiency Index
-
-Both the Production and Purchase tabs use this formula:
+## Building List Efficiency Index
 
 ```text
-Shared efficiency index
-= round(Adjusted weighted value / Remaining Production cost × 10,000)
+E = round(Adjusted weighted value / Production-equivalent cost × 10,000)
 ```
 
-10,000 is a display multiplier that turns small fractions into readable integers without changing their relative order. Neither the Gold purchase price nor current yields per turn enter the formula, so the same evaluated value and Production cost produce the same E in both tabs. This is a shared comparison index, not actual Gold efficiency.
+Production uses the required Production cost obtained from the game. Purchases use the game's Gold purchase price, converted at 1 Gold = 2/7 Production. Purchase discounts and similar adjustments follow the price returned by the game. The 10,000 multiplier makes small fractions readable as integers without changing their ranking. The purchase conversion rate does not change when yield weights are edited.
+
+When a supported overbuilding Production bonus is active, required Production is divided by `1 + Bonus percent / 100` to obtain the cost used for efficiency. For example, 175 Production with a +20% bonus gives an equivalent cost of 175 / 1.2 ≈ 145.83. This does not change the game's actual construction cost.
+
+Supported effects are `GOVERNMENT_PLUTOCRACY` (+20%), `TRADITION_COMMUNE` (+20%), and `TRADITION_CIVIL_ENGINEERING` (+30%). Active bonuses are added, and the same Tradition is not counted twice. They apply when constructing an Urban building over another Urban building, not to purchases or repairs.
+
+No finite efficiency index is calculated when the cost is unavailable or the equivalent cost is zero.
 
 ## Building List Sorting
 
-- **E order**: Sorts by the shared efficiency index, highest first.
+- **E order**: Sorts by the efficiency index, highest first.
 - **W order**: Sorts by weighted value, highest first.
 - **Default**: Disables this mod's sorting and restores the order received from the game or another mod. W/E labels and yield corrections remain active.
 
@@ -80,7 +101,7 @@ The initial setting is E order. Your selection is saved. Items with equal E or W
 
 ## Settings
 
-Open the dedicated settings screen under **Options → Add-ons → Weighted Yield Scores settings**.
+Open the dedicated settings screen under **Options → Additional Content → Weighted Yield Scores settings**.
 
 - Food valuation method: Switches between Dynamic and Fixed. The fixed Food weight field is disabled in Dynamic mode.
 - Yield weights: Accept values from 0 to 3.
@@ -88,6 +109,8 @@ Open the dedicated settings screen under **Options → Add-ons → Weighted Yiel
 - Reset all settings for this mod: Resets the Food mode and all yield weights.
 
 Settings are saved and shared across all evaluations. If you change them during a game, close and reopen the evaluation screen.
+
+Resource valuation is configured separately under **Options → Additional Content → Resource valuation settings**. It provides shared and Age-specific settings, plus Individual resource settings in a separate window. Ratio inputs are normalized against their total and saved when confirmed. Use Reset resource settings in this screen to restore resource defaults.
 
 ## Display Settings
 
@@ -120,4 +143,4 @@ Automated tests require Node.js.
 npm test
 ```
 
-Diagnostic logging is enabled by default. After exiting the game, check `UI.log` and `Modding.log`. This mod's log entries begin with `[Weighted Yield Scores]`. To disable logging, set `diagnostics` to `false` in `ui/config.js`.
+Normal diagnostic logging is enabled by default. Detailed investigation probes are disabled in release builds through `developmentProbes`. After exiting the game, check `UI.log` and `Modding.log`. This mod's log entries begin with `[Weighted Yield Scores]`. To disable logging, set `diagnostics` to `false` in `ui/config.js`.

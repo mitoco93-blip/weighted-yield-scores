@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Database>
+  <LocalizedText>
+    <Row Tag="LOC_MOD_WYS_NAME" Language="ja_JP"><Text>重み付き産出スコア</Text></Row>
+    <Row Tag="LOC_MOD_WYS_DESCRIPTION" Language="ja_JP"><Text>Version: 0.4.0-beta.3. 産出の評価倍率を設定し、郊外タイル・専門家配置・建造物の価値を比較できるUI MODです。</Text></Row>
+  </LocalizedText>
+</Database>

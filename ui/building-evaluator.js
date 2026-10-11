@@ -280,6 +280,7 @@ export function evaluateBuildingPlacement({
   isRepairing = false,
   populationCandidates = undefined,
   forceRuralReplacement = false,
+  excludeRuralImpacts = false,
 } = {}) {
   if (!city || !constructible || !placement) return null;
 
@@ -310,7 +311,7 @@ export function evaluateBuildingPlacement({
     : null;
   // The engine delta already accounts for the selected overbuild target.
   // Other overbuildable buildings are alternatives, not additional removals.
-  const buildingRecord = addYieldRecords(
+  let buildingRecord = addYieldRecords(
     enginePlacementRecord,
     negativeYieldRecord(overwrittenImprovementRecord),
   );
@@ -323,7 +324,21 @@ export function evaluateBuildingPlacement({
     );
   let relocation = null;
 
-  if (ruralReplacement) {
+  if (ruralReplacement && excludeRuralImpacts) {
+    // Undo the rural tile loss, whether it came from the engine's worker
+    // delta or our constructed-improvement correction. Do not filter plots:
+    // a rural location can still win on the new building's own merits.
+    buildingRecord = addYieldRecords(buildingRecord, getPlotYieldRecord(placement.plotID));
+    const previous = getOverbuiltConstructible(placement);
+    if (previous?.ConstructibleClass === "IMPROVEMENT") {
+      // Refunding the removed improvement's upkeep is also a rural impact.
+      buildingRecord = addYieldRecords(buildingRecord, negativeYieldRecord(
+        arrayToYieldRecord(city.Constructibles?.getMaintenance?.(previous.ConstructibleType) ?? []),
+      ));
+    }
+  }
+
+  if (ruralReplacement && !excludeRuralImpacts) {
     const candidates = populationCandidates ?? WeightedYieldRuntime.getPopulationCandidates({
       excludePlotIndexes: [placement.plotID],
       includeSpecialists:
@@ -360,19 +375,21 @@ export function evaluateBuildingPlacement({
     buildingScore: buildingScored.score,
     buildingBaseScore: buildingScored.baseScore,
     buildingContributions: buildingScored.contributions,
-    score: correctedScored.score,
+    resourceValuation: relocation?.scored?.resourceValuation ?? null,
+    score: correctedScored.score + Number(relocation?.scored?.resourceValuation?.score ?? 0),
     baseScore: correctedScored.baseScore,
     correctedContributions: correctedScored.contributions,
+    foodValuation: WeightedYieldRuntime.state.foodValuation,
     happinessAdjustment: correctedScored.happinessAdjustment,
     relocation,
-    relocationScore: relocationScored.score,
+    relocationScore: relocationScored.score + Number(relocation?.scored?.resourceValuation?.score ?? 0),
     relocationBaseScore: relocationScored.baseScore,
     relocationContributions: relocationScored.contributions,
     ruralReplacement,
-    // Never present a rural overbuild as fully evaluated unless the displaced
-    // citizen has a legal destination. Treating a missing candidate as +0 was
-    // the misleading result seen in 0.3.0-alpha.
-    complete: !ruralReplacement || Boolean(relocation),
+    excludeRuralImpacts: Boolean(excludeRuralImpacts),
+    // Full evaluation requires a legal relocation destination. When rural
+    // impacts are explicitly excluded, relocation data is not needed.
+    complete: !ruralReplacement || Boolean(excludeRuralImpacts) || Boolean(relocation),
     isPurchasing: Boolean(isPurchasing),
     // The current UI API cannot ask the engine for WorkerPlacementInfo on a
     // district that does not exist yet. Existing specialist destinations are
@@ -399,9 +416,12 @@ export function selectBestBuildingPlacement(evaluations, epsilon = 1e-9) {
 export function calculateBuildingPriority({
   score,
   productionCost,
+  efficiencyCost,
 } = {}) {
   const value = numberOrZero(score);
-  const production = numberOrZero(productionCost);
+  // Missing/free acquisition prices have no finite cost-efficiency ranking.
+  if (efficiencyCost !== undefined && !(Number(efficiencyCost) > 0)) return null;
+  const production = numberOrZero(efficiencyCost ?? productionCost);
   const scale = numberOrZero(
     WeightedYieldConfig.buildingValuation.priorityScale,
   ) || 10000;
